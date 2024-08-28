@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Countdown to Birthday</title>
+    <title>倒计时到我的生日</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,14 +12,21 @@
             padding-top: 50px;
         }
         #countdown {
-            font-size: 2em;
+            font-size: 3em;
             color: #333;
+            font-weight: bold;
+        }
+        #target-date {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <h1>Countdown to My Birthday!</h1>
+    <h1>距离我的18岁生日还有：</h1>
     <div id="countdown"></div>
+    <div id="target-date">2024.8.29 16:00:00</div>
 
     <script>
         function countdown() {
@@ -32,20 +39,21 @@
             // 计算时间差
             const timeLeft = targetDate - now;
 
-            // 计算天、小时、分钟和秒
+            // 计算天、小时、分钟、秒和毫秒
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
             const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            const milliseconds = Math.floor(timeLeft % 1000);
 
             // 显示倒计时
-            document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            document.getElementById("countdown").innerHTML = `${days}天 ${hours}时 ${minutes}分 ${seconds}秒 ${milliseconds}毫秒`;
 
-            // 每秒更新一次倒计时
+            // 每毫秒更新一次倒计时
             if (timeLeft > 0) {
-                setTimeout(countdown, 1000);
+                setTimeout(countdown, 10);
             } else {
-                document.getElementById("countdown").innerHTML = "Happy Birthday! 🎉";
+                document.getElementById("countdown").innerHTML = "生日快乐！🎉";
             }
         }
 
