@@ -39,7 +39,7 @@
             color: #999;
             margin-top: 10px;
         }
-        #debug-button {
+        #debug-button, #stop-button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 1em;
@@ -48,6 +48,10 @@
             color: white;
             border: none;
             border-radius: 5px;
+            margin-right: 10px;
+        }
+        #stop-button {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -58,8 +62,9 @@
     <div id="copyright">Copyright © Yi Xiaowei</div>
 
     <button id="debug-button" onclick="triggerDebug()">调试</button>
+    <button id="stop-button" onclick="stopMusic()">停止音乐</button>
 
-    <audio id="drum-sound" src="https://www.soundjay.com/button/sounds/drum-hit-3.mp3"></audio>
+    <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
 
     <script>
         function countdown() {
@@ -79,22 +84,28 @@
                 setTimeout(countdown, 10);
             } else {
                 document.getElementById("countdown").innerHTML = "生日快乐！🎉";
+                playBirthdayMusic();
             }
 
             if (minutes === 0 && seconds === 0 && milliseconds < 10) {
-                playDrumSound();
+                playBirthdayMusic();
                 createFireworks();
             }
         }
 
-        function playDrumSound() {
-            const drumSound = document.getElementById("drum-sound");
-            drumSound.volume = 1; // 设置音量为最大
-            drumSound.play().then(() => {
-                console.log("音效播放成功！");
+        function playBirthdayMusic() {
+            const music = document.getElementById("birthday-music");
+            music.play().then(() => {
+                console.log("音乐播放成功！");
             }).catch(error => {
-                console.error("音效播放失败：", error);
+                console.error("音乐播放失败：", error);
             });
+        }
+
+        function stopMusic() {
+            const music = document.getElementById("birthday-music");
+            music.pause();
+            music.currentTime = 0; // 重置音乐播放进度
         }
 
         function createFireworks() {
@@ -112,7 +123,7 @@
         }
 
         function triggerDebug() {
-            playDrumSound();
+            playBirthdayMusic();
             createFireworks();
         }
 
