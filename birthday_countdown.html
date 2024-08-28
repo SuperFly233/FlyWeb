@@ -12,7 +12,7 @@
             padding-top: 50px;
         }
         #countdown {
-            font-size: 6em; /* 将字体大小调为5em */
+            font-size: 6em; /* 将字体大小调为6em */
             color: #333;
             font-weight: bold;
         }
@@ -67,11 +67,11 @@
             const now = new Date().getTime();
             const timeLeft = targetDate - now;
 
-            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            const milliseconds = Math.floor(timeLeft % 1000);
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            const milliseconds = Math.floor(timeLeft % 1000).toString().padStart(3, '0');
 
             document.getElementById("countdown").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
 
