@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>18th Birthday Countdown!</title>
+    <title>18th Birthday Countdown!</title>  <!-- 修改后的标题 -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -73,7 +73,7 @@
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             const milliseconds = Math.floor(timeLeft % 1000);
 
-            document.getElementById("countdown").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
+            document.getElementById("countdown").innerHTML = `${days}天 ${hours}：${minutes}：${seconds}：${milliseconds}`;
 
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
@@ -89,7 +89,12 @@
 
         function playDrumSound() {
             const drumSound = document.getElementById("drum-sound");
-            drumSound.play();
+            drumSound.volume = 1; // 设置音量为最大
+            drumSound.play().then(() => {
+                console.log("音效播放成功！");
+            }).catch(error => {
+                console.error("音效播放失败：", error);
+            });
         }
 
         function createFireworks() {
