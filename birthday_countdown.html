@@ -73,7 +73,7 @@
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             const milliseconds = Math.floor(timeLeft % 1000);
 
-            document.getElementById("countdown").innerHTML = `${days}天 ${hours}：${minutes}：${seconds}：${milliseconds}`;
+            document.getElementById("countdown").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
 
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
