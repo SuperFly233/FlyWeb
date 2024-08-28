@@ -12,7 +12,7 @@
             padding-top: 50px;
         }
         #countdown {
-            font-size: 6em; /* 将字体大小调为6em */
+            font-size: 6em;
             color: #333;
             font-weight: bold;
         }
@@ -39,8 +39,10 @@
             color: #999;
             margin-top: 10px;
         }
-        #debug-button, #stop-button {
+        #button-container {
             margin-top: 20px;
+        }
+        .time-button {
             padding: 10px 20px;
             font-size: 1em;
             cursor: pointer;
@@ -50,25 +52,29 @@
             border-radius: 5px;
             margin-right: 10px;
         }
-        #stop-button {
-            background-color: #dc3545;
+        .time-button:last-child {
+            margin-right: 0;
         }
     </style>
 </head>
 <body>
     <h1>距离我的18岁生日还有：</h1>
     <div id="countdown"></div>
-    <div id="target-date">2024.8.29 16:00:00</div>
+    <div id="target-date">2024.8.29 14:00:00</div>
     <div id="copyright">Copyright © Yi Xiaowei</div>
 
-    <button id="debug-button" onclick="triggerDebug()">调试</button>
-    <button id="stop-button" onclick="stopMusic()">停止音乐</button>
+    <div id="button-container">
+        <button class="time-button" onclick="setTargetTime('00:00:00')">切换到00:00:00</button>
+        <button class="time-button" onclick="setTargetTime('14:00:00')">切换到14:00:00</button>
+    </div>
 
     <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
 
     <script>
+        let targetTime = '14:00:00'; // 默认时间
+
         function countdown() {
-            const targetDate = new Date("2024-08-29T16:00:00").getTime();
+            const targetDate = new Date(`2024-08-29T${targetTime}`).getTime();
             const now = new Date().getTime();
             const timeLeft = targetDate - now;
 
@@ -102,10 +108,10 @@
             });
         }
 
-        function stopMusic() {
-            const music = document.getElementById("birthday-music");
-            music.pause();
-            music.currentTime = 0; // 重置音乐播放进度
+        function setTargetTime(time) {
+            targetTime = time;
+            document.getElementById("target-date").innerText = `2024.8.29 ${time}`;
+            countdown(); // 重新开始倒计时
         }
 
         function createFireworks() {
@@ -122,12 +128,7 @@
             }
         }
 
-        function triggerDebug() {
-            playBirthdayMusic();
-            createFireworks();
-        }
-
-        countdown();
+        countdown(); // 初始化倒计时
     </script>
 </body>
 </html>
