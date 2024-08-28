@@ -21,43 +21,96 @@
             margin-top: 20px;
             color: #666;
         }
+        .firework {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: red;
+            border-radius: 50%;
+            opacity: 0;
+            animation: explode 1s ease-out infinite;
+        }
+        @keyframes explode {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(10); }
+        }
+        #copyright {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 10px;
+        }
+        #debug-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <h1>距离我的18岁生日还有：</h1>
     <div id="countdown"></div>
     <div id="target-date">2024.8.29 16:00:00</div>
+    <div id="copyright">Copyright © Yi Xiaowei</div>
+
+    <button id="debug-button" onclick="triggerDebug()">调试</button>
+
+    <audio id="drum-sound" src="https://www.soundjay.com/button/sounds/drum-hit-3.mp3"></audio>
 
     <script>
         function countdown() {
-            // 设置倒计时目标时间
             const targetDate = new Date("2024-08-29T16:00:00").getTime();
-
-            // 获取当前时间
             const now = new Date().getTime();
-
-            // 计算时间差
             const timeLeft = targetDate - now;
 
-            // 计算天、小时、分钟、秒和毫秒
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
             const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             const milliseconds = Math.floor(timeLeft % 1000);
 
-            // 显示倒计时
-            document.getElementById("countdown").innerHTML = `${days}天 ${hours}时 ${minutes}分 ${seconds}秒 ${milliseconds}毫秒`;
+            document.getElementById("countdown").innerHTML = `${days}天 ${hours}：${minutes}：${seconds}：${milliseconds}`;
 
-            // 每毫秒更新一次倒计时
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
             } else {
                 document.getElementById("countdown").innerHTML = "生日快乐！🎉";
             }
+
+            if (minutes === 0 && seconds === 0 && milliseconds < 10) {
+                playDrumSound();
+                createFireworks();
+            }
         }
 
-        // 启动倒计时
+        function playDrumSound() {
+            const drumSound = document.getElementById("drum-sound");
+            drumSound.play();
+        }
+
+        function createFireworks() {
+            for (let i = 0; i < 10; i++) {
+                const firework = document.createElement("div");
+                firework.classList.add("firework");
+                firework.style.left = `${Math.random() * 100}%`;
+                firework.style.top = `${Math.random() * 100}%`;
+                document.body.appendChild(firework);
+
+                setTimeout(() => {
+                    firework.remove();
+                }, 1000);
+            }
+        }
+
+        function triggerDebug() {
+            playDrumSound();
+            createFireworks();
+        }
+
         countdown();
     </script>
 </body>
