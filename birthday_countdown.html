@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Countdown to Birthday</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding-top: 50px;
+        }
+        #countdown {
+            font-size: 2em;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Countdown to My Birthday!</h1>
+    <div id="countdown"></div>
+
+    <script>
+        function countdown() {
+            // 设置倒计时目标时间
+            const targetDate = new Date("2024-08-29T16:00:00").getTime();
+
+            // 获取当前时间
+            const now = new Date().getTime();
+
+            // 计算时间差
+            const timeLeft = targetDate - now;
+
+            // 计算天、小时、分钟和秒
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            // 显示倒计时
+            document.getElementById("countdown").innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+            // 每秒更新一次倒计时
+            if (timeLeft > 0) {
+                setTimeout(countdown, 1000);
+            } else {
+                document.getElementById("countdown").innerHTML = "Happy Birthday! 🎉";
+            }
+        }
+
+        // 启动倒计时
+        countdown();
+    </script>
+</body>
+</html>
