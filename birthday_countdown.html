@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>18th Birthday Countdown!</title>  <!-- 修改后的标题 -->
+    <title>18th Birthday Countdown!</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             padding-top: 50px;
         }
         #countdown {
-            font-size: 6em;
+            font-size: 8em; /* 将字体大小调为5em */
             color: #333;
             font-weight: bold;
         }
@@ -73,7 +73,7 @@
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             const milliseconds = Math.floor(timeLeft % 1000);
 
-            document.getElementById("countdown").innerHTML = `${days}天 ${hours}：${minutes}：${seconds}：${milliseconds}`;
+            document.getElementById("countdown").innerHTML = `${days} : ${hours} : ${minutes} : ${seconds} : ${milliseconds}`;
 
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
