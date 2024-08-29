@@ -31,7 +31,7 @@
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
         }
         #target-date {
-            font-size: 1.5em;
+            font-size: 1.2em;
             margin-top: 10px;
             color: #666;
         }
@@ -104,7 +104,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        .language-button {
+        .language-button, .time-button {
             padding: 5px 10px;
             font-size: 0.8em;
             cursor: pointer;
@@ -116,7 +116,7 @@
             transition: transform 0.2s;
             opacity: 0.7; /* 调整按钮不太明显 */
         }
-        .language-button:active {
+        .language-button:active, .time-button:active {
             transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
         /* 响应式调整字体大小 */
@@ -168,32 +168,23 @@
         const translations = {
             'zh': {
                 'headline': '距离我的18岁生日还有!',
-                'button00': '切换到00:00:00',
-                'button16': '切换到16:10:00',
                 'logCountdownEnded': '生日快乐!🎂',
                 'logMusicSuccess': '生日音乐播放成功!',
                 'logMusicFail': '生日音乐播放失败: ',
-                'logSwitchTo': '切换倒计时目标到',
                 'browserTitle': '生日倒计时!'
             },
             'en': {
                 'headline': 'Time left until my 18th Birthday!',
-                'button00': 'Switch to 00:00:00',
-                'button16': 'Switch to 16:10:00',
                 'logCountdownEnded': 'Happy Birthday!🎂',
                 'logMusicSuccess': 'Birthday music played successfully!',
                 'logMusicFail': 'Birthday music failed to play: ',
-                'logSwitchTo': 'Switched countdown target to',
                 'browserTitle': 'Birthday Countdown!'
             },
             'ja': {
                 'headline': '私の18歳の誕生日までの残り時間！',
-                'button00': '00:00:00に切り替え',
-                'button16': '16:10:00に切り替え',
                 'logCountdownEnded': 'お誕生日おめでとう！🎂',
                 'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
                 'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
-                'logSwitchTo': 'カウントダウンのターゲットを切り替えました：',
                 'browserTitle': '誕生日のカウントダウン！'
             }
         };
@@ -287,8 +278,6 @@
         function setLanguage(language) {
             currentLanguage = language;
             document.getElementById("headline").innerText = translations[language]['headline'];
-            document.querySelectorAll('.language-button')[0].innerText = translations[language]['button00'];
-            document.querySelectorAll('.language-button')[1].innerText = translations[language]['button16'];
 
             if (countdownEnded) {
                 document.getElementById("time-remaining").innerHTML = translations[language]['logCountdownEnded'];
@@ -302,7 +291,6 @@
             if (customHeadline) {
                 document.getElementById("headline").innerText = customHeadline;
             }
-
             if (customEndMessage) {
                 translations[currentLanguage]['logCountdownEnded'] = customEndMessage;
                 if (countdownEnded) {
