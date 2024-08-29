@@ -10,6 +10,8 @@
             text-align: center;
             background-color: #f4f4f4;
             padding-top: 50px;
+            margin: 0;
+            padding-bottom: 50px; /* 为底部的Copyright信息留出空间 */
         }
         #countdown {
             font-size: 6em;
@@ -37,7 +39,12 @@
         #copyright {
             font-size: 0.8em;
             color: #999;
-            margin-top: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 10px 0;
         }
         #button-container {
             margin-top: 20px;
@@ -72,12 +79,11 @@
 <body>
     <h1>距离我的18岁生日还有：</h1>
     <div id="countdown"></div>
-    <div id="target-date">2024.8.29 16:00:00</div> <!-- 已更新为16:00:00 -->
-    <div id="copyright">Copyright © Yi Xiaowei</div>
+    <div id="target-date">2024.8.29 16:00:00</div>
 
     <div id="button-container">
         <button class="time-button" onclick="setTargetTime('00:00:00')">切换到00:00:00</button>
-        <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button> <!-- 已更新为16:00:00 -->
+        <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button>
     </div>
 
     <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
@@ -142,5 +148,7 @@
 
         countdown(); // 初始化倒计时
     </script>
+
+    <div id="copyright">Copyright © Yi Xiaowei</div> <!-- 移动到页面底部 -->
 </body>
 </html>
