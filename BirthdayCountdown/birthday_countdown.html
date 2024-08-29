@@ -12,11 +12,16 @@
             padding-top: 50px;
             margin: 0;
             padding-bottom: 50px; /* 为底部的Copyright信息留出空间 */
+            transition: background-color 0.5s;
         }
         #countdown {
             font-size: 6em;
             color: #333;
             font-weight: bold;
+            transition: transform 0.2s;
+        }
+        #countdown:hover {
+            transform: scale(1.1); /* 鼠标悬停时放大效果 */
         }
         #target-date {
             font-size: 1.2em;
@@ -58,9 +63,31 @@
             border: none;
             border-radius: 5px;
             margin-right: 10px;
+            transition: transform 0.2s;
         }
         .time-button:last-child {
             margin-right: 0;
+        }
+        .time-button:active {
+            transform: scale(0.9); /* 按钮点击时缩小效果 */
+        }
+        #log {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+            margin-left: auto;
+            margin-right: auto;
+            width: 50%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        #language-selector {
+            margin-top: 20px;
         }
         /* 响应式调整字体大小 */
         @media (max-width: 768px) { /* 针对手机和平板 */
@@ -73,11 +100,14 @@
             #countdown {
                 font-size: 3em; /* 非常小的屏幕上将字体调整为3em */
             }
+            #log {
+                width: 90%; /* 在小屏幕上调整日志宽度 */
+            }
         }
     </style>
 </head>
 <body>
-    <h1>距离我的18岁生日还有：</h1>
+    <h1 id="headline">距离我的18岁生日还有!</h1>
     <div id="countdown"></div>
     <div id="target-date">2024.8.29 16:00:00</div>
 
@@ -86,10 +116,43 @@
         <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button>
     </div>
 
+    <div id="log"></div> <!-- 事件日志 -->
+
+    <div id="language-selector">
+        <button class="time-button" onclick="setLanguage('zh')">中文</button>
+        <button class="time-button" onclick="setLanguage('en')">English</button>
+    </div>
+
     <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
+    <audio id="button-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio> <!-- 按钮点击音效 -->
 
     <script>
         let targetTime = '16:00:00'; // 默认时间
+        let logContainer = document.getElementById("log");
+        let currentLanguage = 'zh'; // 默认语言
+
+        const translations = {
+            'zh': {
+                'headline': '距离我的18岁生日还有!',
+                'button00': '切换到00:00:00',
+                'button16': '切换到16:00:00',
+                'logCountdownEnded': '倒计时结束，生日快乐!',
+                'logMusicSuccess': '生日音乐播放成功!',
+                'logMusicFail': '生日音乐播放失败: ',
+                'logSwitchTo': '切换倒计时目标到',
+                'browserTitle': '生日倒计时!'
+            },
+            'en': {
+                'headline': 'Time left until my 18th Birthday!',
+                'button00': 'Switch to 00:00:00',
+                'button16': 'Switch to 16:00:00',
+                'logCountdownEnded': 'Countdown ended, Happy Birthday!',
+                'logMusicSuccess': 'Birthday music played successfully!',
+                'logMusicFail': 'Birthday music failed to play: ',
+                'logSwitchTo': 'Switched countdown target to',
+                'browserTitle': 'Birthday Countdown!'
+            }
+        };
 
         function countdown() {
             const targetDate = new Date(`2024-08-29T${targetTime}`).getTime();
@@ -103,11 +166,17 @@
             const milliseconds = Math.floor(timeLeft % 1000).toString().padStart(3, '0');
 
             document.getElementById("countdown").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
+            document.title = `${days}:${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
+
+            if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
+                document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#ffdddd" : "#ddddff"; // 闪烁背景
+            }
 
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
             } else {
-                document.getElementById("countdown").innerHTML = "生日快乐！🎉";
+                document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'] + " 🎉";
+                logEvent(translations[currentLanguage]['logCountdownEnded']);
                 playBirthdayMusic();
             }
 
@@ -120,16 +189,25 @@
         function playBirthdayMusic() {
             const music = document.getElementById("birthday-music");
             music.play().then(() => {
-                console.log("音乐播放成功！");
+                logEvent(translations[currentLanguage]['logMusicSuccess']);
             }).catch(error => {
-                console.error("音乐播放失败：", error);
+                logEvent(translations[currentLanguage]['logMusicFail'] + error);
             });
         }
 
         function setTargetTime(time) {
             targetTime = time;
             document.getElementById("target-date").innerText = `2024.8.29 ${time}`; // 更新显示的目标时间
+            logEvent(`${translations[currentLanguage]['logSwitchTo']} ${time}`);
+            playButtonSound();
             countdown(); // 重新开始倒计时
+        }
+
+        function playButtonSound() {
+            const buttonSound = document.getElementById("button-sound");
+            buttonSound.play().catch(error => {
+                console.error("按钮声音播放失败:", error);
+            });
         }
 
         function createFireworks() {
@@ -146,9 +224,23 @@
             }
         }
 
+        function logEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            logContainer.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+            logContainer.scrollTop = logContainer.scrollHeight; // 自动滚动到底部
+        }
+
+        function setLanguage(language) {
+            currentLanguage = language;
+            document.getElementById("headline").innerText = translations[language]['headline'];
+            document.querySelectorAll('.time-button')[0].innerText = translations[language]['button00'];
+            document.querySelectorAll('.time-button')[1].innerText = translations[language]['button16'];
+            logEvent(`语言切换到 ${language === 'zh' ? '中文' : 'English'}`);
+        }
+
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">Copyright © Yi Xiaowei</div> <!-- 移动到页面底部 -->
+    <div id="copyright">Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 移动到页面底部并更新内容 -->
 </body>
 </html>
