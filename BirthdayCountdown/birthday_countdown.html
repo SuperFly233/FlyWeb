@@ -16,6 +16,7 @@
             justify-content: center;
             align-items: center;
             padding-bottom: 250px; /* 为按钮和版权信息留出空间 */
+            overflow: hidden;
         }
         #countdown {
             font-size: 6em;
@@ -161,7 +162,7 @@
         <button onclick="updateCustomText()">更新</button>
     </div>
 
-    <audio id="birthday-music" src="https://m701.music.126.net/20240829135818/2e99099239903a969519769c36a8fe4e/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/28481982216/fca7/e2d3/4ba2/8eb5e30f5af8fc07a681d941a6f7567a.mp3"></audio>
+    <audio id="birthday-music" src="https://music.163.com/song/media/outer/url?id=497918887.mp3"></audio>
     <audio id="button-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio> <!-- 按钮点击音效 -->
 
     <script>
@@ -223,6 +224,7 @@
                 document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
                 countdownEnded = true; // 标记倒计时结束
                 playBirthdayMusic();
+                createFireworks(); // 启动烟花特效
             }
 
             if (minutes === 0 && seconds === 0 && milliseconds < 10) {
@@ -235,6 +237,7 @@
             document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
             countdownEnded = true;
             playBirthdayMusic();
+            createFireworks();
         }
 
         function pauseMusic() {
@@ -310,6 +313,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.1.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.2.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
