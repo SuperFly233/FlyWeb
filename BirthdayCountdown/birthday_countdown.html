@@ -36,11 +36,13 @@
         #countdown:hover {
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
         }
-        #target-date, #customization {
+        #target-date, #customization, #log {
             font-size: 0.3em; /* 设置为与版权信息相同的字体大小 */
             margin-top: 10px;
             color: #666;
-            transition: opacity 0.3s; /* 添加过渡效果 */
+            transition: opacity 0.3s, visibility 0.3s; /* 添加过渡效果 */
+            visibility: visible;
+            opacity: 1;
         }
         .firework {
             position: absolute;
@@ -79,7 +81,6 @@
             height: 100px;
             overflow-y: scroll;
             border: 1px solid #ccc;
-            transition: opacity 0.3s; /* 添加过渡效果 */
         }
         #copyright {
             font-size: 0.8em;
@@ -356,14 +357,12 @@
         }
 
         function toggleVisibility() {
-            const targetDate = document.getElementById("target-date");
-            const customization = document.getElementById("customization");
-            const logElement = document.getElementById("log");
-            const isVisible = targetDate.style.opacity !== "0";
-
-            targetDate.style.opacity = isVisible ? "0" : "1";
-            customization.style.opacity = isVisible ? "0" : "1";
-            logElement.style.opacity = isVisible ? "0" : "1"; // 显示/隐藏日志框
+            const elements = [document.getElementById("target-date"), document.getElementById("customization"), document.getElementById("log")];
+            elements.forEach(element => {
+                const isVisible = element.style.visibility !== "hidden";
+                element.style.visibility = isVisible ? "hidden" : "visible";
+                element.style.opacity = isVisible ? "0" : "1";
+            });
         }
 
         function logMessage(message) {
@@ -378,6 +377,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.6.1 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.6.2 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
