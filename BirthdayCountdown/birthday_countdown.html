@@ -69,6 +69,18 @@
         #customization input[type="datetime-local"] {
             width: 220px;
         }
+        #log {
+            font-size: 0.8em;
+            color: #000;
+            background-color: #f4f4f4;
+            padding: 10px;
+            margin-top: 20px;
+            width: 80%;
+            height: 100px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            transition: opacity 0.3s; /* 添加过渡效果 */
+        }
         #copyright {
             font-size: 0.8em;
             color: #999;
@@ -172,6 +184,8 @@
         <button onclick="updateCustomText()">更新</button>
     </div>
 
+    <div id="log">日志输出区域</div> <!-- 新增的日志输出区域 -->
+
     <audio id="birthday-music" src="https://music.163.com/song/media/outer/url?id=497918887.mp3"></audio>
     <audio id="button-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio> <!-- 按钮点击音效 -->
 
@@ -224,6 +238,8 @@
             document.getElementById("time-remaining").innerHTML = `${days}${hours}:${minutes}:${seconds}.${milliseconds}`;
             document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
 
+            logMessage(`当前时间：${days}${hours}:${minutes}:${seconds}.${milliseconds}`); // 将当前倒计时输出到日志
+
             if (timeLeft <= 60000 && timeLeft > 10000) { // 倒计时前60秒到10秒时闪动
                 document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#f0e68c" : "#ffa07a";
             }
@@ -240,6 +256,7 @@
                 document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
                 playBirthdayMusic();
                 createFireworks(); // 启动烟花特效
+                logMessage("倒计时结束，生日快乐！"); // 输出倒计时结束日志
             }
 
             if (minutes === 0 && seconds === 0 && milliseconds < 10) {
@@ -254,19 +271,21 @@
             document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
             playBirthdayMusic();
             createFireworks();
+            logMessage("模拟结束，生日快乐！"); // 输出模拟结束日志
         }
 
         function pauseMusic() {
             const music = document.getElementById("birthday-music");
             music.pause();
+            logMessage("音乐暂停。"); // 输出音乐暂停日志
         }
 
         function playBirthdayMusic() {
             const music = document.getElementById("birthday-music");
             music.play().then(() => {
-                console.log(translations[currentLanguage]['logMusicSuccess']);
+                logMessage(translations[currentLanguage]['logMusicSuccess']); // 输出音乐播放成功日志
             }).catch(error => {
-                console.error(translations[currentLanguage]['logMusicFail'] + error);
+                logMessage(translations[currentLanguage]['logMusicFail'] + error); // 输出音乐播放失败日志
             });
         }
 
@@ -275,12 +294,13 @@
             document.getElementById("target-date").innerText = `2024.8.29 ${time}`; // 更新显示的目标时间
             playButtonSound();
             countdown(); // 重新开始倒计时
+            logMessage(`倒计时目标时间已设置为${time}`); // 输出时间设置日志
         }
 
         function playButtonSound() {
             const buttonSound = document.getElementById("button-sound");
             buttonSound.play().catch(error => {
-                console.error("按钮声音播放失败:", error);
+                logMessage("按钮声音播放失败:" + error); // 输出按钮声音播放失败日志
             });
         }
 
@@ -303,6 +323,7 @@
         function setLanguage(language) {
             currentLanguage = language;
             document.getElementById("headline").innerText = translations[language]['headline'];
+            logMessage(`语言已切换为${language}`); // 输出语言切换日志
 
             if (countdownEnded) {
                 document.getElementById("time-remaining").innerHTML = translations[language]['logCountdownEnded'];
@@ -316,27 +337,39 @@
 
             if (customHeadline) {
                 document.getElementById("headline").innerText = customHeadline;
+                logMessage(`倒计时标题已更新为：${customHeadline}`); // 输出标题更新日志
             }
             if (customEndMessage) {
                 translations[currentLanguage]['logCountdownEnded'] = customEndMessage;
                 if (countdownEnded) {
                     document.getElementById("time-remaining").innerText = customEndMessage;
                 }
+                logMessage(`倒计时结束信息已更新为：${customEndMessage}`); // 输出结束信息更新日志
             }
             if (customTime) {
                 const [date, time] = customTime.split("T");
                 setTargetTime(time);
                 document.getElementById("target-date").innerText = `${date} ${time}`;
+                logMessage(`倒计时目标时间已更新为：${customTime}`); // 输出时间更新日志
             }
         }
 
         function toggleVisibility() {
             const targetDate = document.getElementById("target-date");
             const customization = document.getElementById("customization");
+            const logElement = document.getElementById("log");
             const isVisible = targetDate.style.opacity !== "0";
 
             targetDate.style.opacity = isVisible ? "0" : "1";
             customization.style.opacity = isVisible ? "0" : "1";
+            logElement.style.opacity = isVisible ? "0" : "1"; // 显示/隐藏日志框
+        }
+
+        function logMessage(message) {
+            const logElement = document.getElementById("log");
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `<p>[${timestamp}] ${message}</p>`;
+            logElement.scrollTop = logElement.scrollHeight; // 滚动到日志底部
         }
 
         document.getElementById("copyright").addEventListener("click", toggleVisibility);
@@ -344,6 +377,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.5.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.6.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
