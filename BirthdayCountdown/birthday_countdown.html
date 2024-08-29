@@ -36,10 +36,11 @@
         #countdown:hover {
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
         }
-        #target-date {
+        #target-date, #customization {
             font-size: 0.3em; /* 设置为与版权信息相同的字体大小 */
             margin-top: 10px;
             color: #666;
+            transition: opacity 0.3s; /* 添加过渡效果 */
         }
         .firework {
             position: absolute;
@@ -77,6 +78,7 @@
             text-align: center;
             background-color: #f4f4f4;
             padding: 10px 0;
+            cursor: pointer; /* 添加鼠标指针样式 */
         }
         #button-container {
             position: fixed;
@@ -184,21 +186,21 @@
                 'logCountdownEnded': '生日快乐!🎂',
                 'logMusicSuccess': '生日音乐播放成功!',
                 'logMusicFail': '生日音乐播放失败: ',
-                'browserTitle': '生日倒计时!'
+                'browserTitle': '生日快乐🎂!'
             },
             'en': {
                 'headline': 'Time left until my 18th Birthday!',
                 'logCountdownEnded': 'Happy Birthday!🎂',
                 'logMusicSuccess': 'Birthday music played successfully!',
                 'logMusicFail': 'Birthday music failed to play: ',
-                'browserTitle': 'Birthday Countdown!'
+                'browserTitle': 'Happy Birthday🎂!'
             },
             'ja': {
                 'headline': '私の18歳の誕生日までの残り時間！',
                 'logCountdownEnded': 'お誕生日おめでとう！🎂',
                 'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
                 'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
-                'browserTitle': '誕生日のカウントダウン！'
+                'browserTitle': 'お誕生日おめでとう🎂！'
             }
         };
 
@@ -235,6 +237,7 @@
             } else {
                 document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
                 countdownEnded = true; // 标记倒计时结束
+                document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
                 playBirthdayMusic();
                 createFireworks(); // 启动烟花特效
             }
@@ -248,6 +251,7 @@
         function simulateEnd() {
             document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
             countdownEnded = true;
+            document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
             playBirthdayMusic();
             createFireworks();
         }
@@ -326,9 +330,20 @@
             }
         }
 
+        function toggleVisibility() {
+            const targetDate = document.getElementById("target-date");
+            const customization = document.getElementById("customization");
+            const isVisible = targetDate.style.opacity !== "0";
+
+            targetDate.style.opacity = isVisible ? "0" : "1";
+            customization.style.opacity = isVisible ? "0" : "1";
+        }
+
+        document.getElementById("copyright").addEventListener("click", toggleVisibility);
+
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.4.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.5.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
