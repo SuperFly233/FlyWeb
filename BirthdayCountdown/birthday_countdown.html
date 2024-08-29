@@ -59,9 +59,6 @@
             padding: 5px 10px;
             font-size: 1em;
         }
-        #customization input[type="time"] {
-            width: 180px;
-        }
         #customization input[type="datetime-local"] {
             width: 220px;
         }
@@ -161,7 +158,7 @@
     <div id="customization">
         <input type="text" id="custom-headline" placeholder="自定义倒计时标题">
         <input type="text" id="custom-end-message" placeholder="自定义倒计时结束信息">
-        <input type="datetime-local" id="custom-time" placeholder="设置倒计时时间">
+        <input type="datetime-local" id="custom-time" step="1" placeholder="设置倒计时时间"> <!-- 支持秒数设置 -->
         <button onclick="updateCustomText()">更新</button>
     </div>
 
@@ -217,8 +214,12 @@
             document.getElementById("time-remaining").innerHTML = `${days}${hours}:${minutes}:${seconds}.${milliseconds}`;
             document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
 
+            if (timeLeft <= 60000 && timeLeft > 10000) { // 倒计时前60秒到10秒时闪动
+                document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#f0e68c" : "#ffa07a";
+            }
+
             if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
-                document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#ffdddd" : "#ddddff"; // 闪烁背景
+                document.body.style.backgroundColor = timeLeft % 500 < 250 ? "#ffdddd" : "#ddddff"; // 剧烈闪烁背景
             }
 
             if (timeLeft > 0) {
@@ -283,6 +284,8 @@
                     firework.remove();
                 }, 1000);
             }
+            setTimeout(createFireworks, 1000); // 30秒内重复生成烟花
+            setTimeout(() => clearTimeout(createFireworks), 30000); // 停止烟花生成
         }
 
         function setLanguage(language) {
@@ -318,6 +321,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.3.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.2.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
