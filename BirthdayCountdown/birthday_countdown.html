@@ -228,15 +228,15 @@
                 document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
 
                 if (timeLeft <= 60000 && timeLeft > 30000) { // 倒计时前60秒到30秒切换颜色
-                    document.body.style.backgroundColor = timeLeft % 1200 < 400 ? "#00f" : (timeLeft % 1200 < 800 ? "#0f0" : "#f0f");
+                    document.body.style.backgroundColor = timeLeft % 1200 < 400 ? "rgba(173, 216, 230, 0.4)" : (timeLeft % 1200 < 800 ? "rgba(144, 238, 144, 0.4)" : "rgba(255, 182, 193, 0.4)");
                 }
 
                 if (timeLeft <= 30000 && timeLeft > 10000) { // 倒计时前30秒到10秒快速切换颜色
-                    document.body.style.backgroundColor = timeLeft % 600 < 200 ? "#00f" : (timeLeft % 600 < 400 ? "#0f0" : "#f0f");
+                    document.body.style.backgroundColor = timeLeft % 600 < 200 ? "rgba(173, 216, 230, 0.7)" : (timeLeft % 600 < 400 ? "rgba(144, 238, 144, 0.7)" : "rgba(255, 182, 193, 0.7)");
                 }
 
                 if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少时快速切换颜色并调整字体大小
-                    document.body.style.backgroundColor = timeLeft % 300 < 100 ? "#f00" : (timeLeft % 300 < 200 ? "#ffa500" : "#ffd700");
+                    document.body.style.backgroundColor = timeLeft % 300 < 100 ? "rgba(255, 0, 0, 0.4)" : (timeLeft % 300 < 200 ? "rgba(255, 165, 0, 0.4)" : "rgba(255, 215, 0, 0.4)");
                     document.getElementById("time-remaining").style.transform = `scale(${1 + 0.1 * Math.sin((10000 - timeLeft) / 100)})`;
                 }
 
@@ -286,7 +286,7 @@
         }
 
         function createFireworks() {
-            const colors = ["#f00", "#ffa500", "#ffd700"];
+            const colors = ["rgba(255, 0, 0, 0.4)", "rgba(255, 165, 0, 0.4)", "rgba(255, 215, 0, 0.4)"];
             for (let i = 0; i < 10; i++) {
                 const firework = document.createElement("div");
                 firework.classList.add("firework");
@@ -338,6 +338,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.8.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.8.1 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
