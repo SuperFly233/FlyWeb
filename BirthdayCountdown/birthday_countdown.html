@@ -58,6 +58,9 @@
             padding: 5px 10px;
             font-size: 1em;
         }
+        #customization input[type="time"] {
+            width: 150px;
+        }
         #copyright {
             font-size: 0.8em;
             color: #999;
@@ -154,6 +157,7 @@
     <div id="customization">
         <input type="text" id="custom-headline" placeholder="自定义倒计时标题">
         <input type="text" id="custom-end-message" placeholder="自定义倒计时结束信息">
+        <input type="time" id="custom-time" placeholder="设置倒计时时间">
         <button onclick="updateCustomText()">更新</button>
     </div>
 
@@ -287,6 +291,7 @@
         function updateCustomText() {
             const customHeadline = document.getElementById("custom-headline").value;
             const customEndMessage = document.getElementById("custom-end-message").value;
+            const customTime = document.getElementById("custom-time").value;
 
             if (customHeadline) {
                 document.getElementById("headline").innerText = customHeadline;
@@ -297,11 +302,14 @@
                     document.getElementById("time-remaining").innerText = customEndMessage;
                 }
             }
+            if (customTime) {
+                setTargetTime(customTime);
+            }
         }
 
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 移动到页面底部并更新内容 -->
+    <div id="copyright">v1.1.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
