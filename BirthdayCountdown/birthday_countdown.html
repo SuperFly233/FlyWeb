@@ -253,26 +253,21 @@
                 setTimeout(countdown, 10);
 
             } else {
-                document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
-                countdownEnded = true; // 标记倒计时结束
-                document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
-                playBirthdayMusic();
-                createFireworks(); // 启动烟花特效
-                logMessage("倒计时结束，生日快乐！"); // 输出倒计时结束日志
-            }
-
-            if (minutes === 0 && seconds === 0 && milliseconds < 10) {
-                playBirthdayMusic();
-                createFireworks();
+                showBirthdayMessage(); // 调用函数显示生日信息
             }
         }
 
-        function simulateEnd() {
+        function showBirthdayMessage() {
             document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
-            countdownEnded = true;
+            countdownEnded = true; // 标记倒计时结束
             document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
             playBirthdayMusic();
-            createFireworks();
+            createFireworks(); // 启动烟花特效
+            logMessage("倒计时结束，生日快乐！"); // 输出倒计时结束日志
+        }
+
+        function simulateEnd() {
+            showBirthdayMessage(); // 调用函数显示生日信息
             logMessage("模拟结束，生日快乐！"); // 输出模拟结束日志
         }
 
@@ -328,7 +323,7 @@
             logMessage(`语言已切换为${language}`); // 输出语言切换日志
 
             if (countdownEnded) {
-                document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
+                showBirthdayMessage(); // 语言切换时更新显示内容
             }
         }
 
@@ -344,7 +339,7 @@
             if (customEndMessage) {
                 translations[currentLanguage]['logCountdownEnded'] = customEndMessage;
                 if (countdownEnded) {
-                    document.getElementById("time-remaining").innerText = customEndMessage;
+                    showBirthdayMessage(); // 更新结束信息
                 }
                 logMessage(`倒计时结束信息已更新为：${customEndMessage}`); // 输出结束信息更新日志
             }
