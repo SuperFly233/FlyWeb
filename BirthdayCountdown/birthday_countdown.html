@@ -15,7 +15,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding-bottom: 100px; /* 为按钮和版权信息留出空间 */
+            padding-bottom: 150px; /* 为按钮和版权信息留出空间 */
         }
         #countdown {
             font-size: 6em;
@@ -60,14 +60,15 @@
         }
         #button-container {
             position: fixed;
-            bottom: 80px; /* 确保按钮位于版权信息上方 */
+            bottom: 100px; /* 确保按钮位于版权信息上方 */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-wrap: wrap;
         }
-        .time-button {
+        .time-button, .control-button {
             padding: 5px 10px;
             font-size: 0.8em;
             cursor: pointer;
@@ -75,25 +76,23 @@
             color: white;
             border: none;
             border-radius: 5px;
-            margin-right: 5px;
+            margin: 5px;
             transition: transform 0.2s;
             opacity: 0.7; /* 调整按钮不太明显 */
         }
-        .time-button:last-child {
-            margin-right: 0;
-        }
-        .time-button:active {
+        .time-button:active, .control-button:active {
             transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
         #language-selector {
             margin-top: 10px;
             position: fixed;
-            bottom: 40px; /* 确保按钮位于版权信息上方 */
+            bottom: 60px; /* 确保按钮位于版权信息上方 */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-wrap: wrap;
         }
         .language-button {
             padding: 5px 10px;
@@ -103,12 +102,9 @@
             color: white;
             border: none;
             border-radius: 5px;
-            margin-right: 5px;
+            margin: 5px;
             transition: transform 0.2s;
             opacity: 0.7; /* 调整按钮不太明显 */
-        }
-        .language-button:last-child {
-            margin-right: 0;
         }
         .language-button:active {
             transform: scale(0.9); /* 按钮点击时缩小效果 */
@@ -135,6 +131,10 @@
     <div id="button-container">
         <button class="time-button" onclick="setTargetTime('00:00:00')">切换到00:00:00</button>
         <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button>
+        <button class="control-button" onclick="simulateEnd()">模拟结束</button>
+        <button class="control-button" onclick="resetCountdown()">复位</button>
+        <button class="control-button" onclick="playMusic()">播放</button>
+        <button class="control-button" onclick="pauseMusic()">暂停</button>
     </div>
 
     <div id="language-selector">
@@ -223,6 +223,24 @@
             }).catch(error => {
                 console.error(translations[currentLanguage]['logMusicFail'] + error);
             });
+        }
+
+        function pauseMusic() {
+            const music = document.getElementById("birthday-music");
+            music.pause();
+        }
+
+        function simulateEnd() {
+            countdownEnded = true;
+            document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'];
+            playBirthdayMusic();
+            createFireworks();
+        }
+
+        function resetCountdown() {
+            countdownEnded = false;
+            document.getElementById("countdown").innerHTML = '';
+            countdown(); // 重新开始倒计时
         }
 
         function setTargetTime(time) {
