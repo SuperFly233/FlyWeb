@@ -9,16 +9,22 @@
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #f4f4f4;
-            padding-top: 50px;
             margin: 0;
-            padding-bottom: 50px; /* 为底部的Copyright信息留出空间 */
-            transition: background-color 0.5s;
+            height: 100vh; /* 使页面高度始终充满视窗 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         #countdown {
             font-size: 6em;
             color: #333;
             font-weight: bold;
             transition: transform 0.2s;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         #countdown:hover {
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
@@ -52,18 +58,25 @@
             padding: 10px 0;
         }
         #button-container {
-            margin-top: 20px;
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         .time-button {
-            padding: 10px 20px;
-            font-size: 1em;
+            padding: 5px 10px;
+            font-size: 0.8em;
             cursor: pointer;
             background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
-            margin-right: 10px;
+            margin-right: 5px;
             transition: transform 0.2s;
+            opacity: 0.7; /* 调整按钮不太明显 */
         }
         .time-button:last-child {
             margin-right: 0;
@@ -72,7 +85,32 @@
             transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
         #language-selector {
-            margin-top: 20px;
+            margin-top: 10px;
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .language-button {
+            padding: 5px 10px;
+            font-size: 0.8em;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-right: 5px;
+            transition: transform 0.2s;
+            opacity: 0.7; /* 调整按钮不太明显 */
+        }
+        .language-button:last-child {
+            margin-right: 0;
+        }
+        .language-button:active {
+            transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
         /* 响应式调整字体大小 */
         @media (max-width: 768px) { /* 针对手机和平板 */
@@ -99,9 +137,9 @@
     </div>
 
     <div id="language-selector">
-        <button class="time-button" onclick="setLanguage('zh')">中文</button>
-        <button class="time-button" onclick="setLanguage('en')">English</button>
-        <button class="time-button" onclick="setLanguage('ja')">日本語</button>
+        <button class="language-button" onclick="setLanguage('zh')">中文</button>
+        <button class="language-button" onclick="setLanguage('en')">English</button>
+        <button class="language-button" onclick="setLanguage('ja')">日本語</button>
     </div>
 
     <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
@@ -116,7 +154,7 @@
                 'headline': '距离我的18岁生日还有!',
                 'button00': '切换到00:00:00',
                 'button16': '切换到16:00:00',
-                'logCountdownEnded': '倒计时结束，生日快乐!',
+                'logCountdownEnded': '生日快乐!🎂',
                 'logMusicSuccess': '生日音乐播放成功!',
                 'logMusicFail': '生日音乐播放失败: ',
                 'logSwitchTo': '切换倒计时目标到',
@@ -126,7 +164,7 @@
                 'headline': 'Time left until my 18th Birthday!',
                 'button00': 'Switch to 00:00:00',
                 'button16': 'Switch to 16:00:00',
-                'logCountdownEnded': 'Countdown ended, Happy Birthday!',
+                'logCountdownEnded': 'Happy Birthday!🎂',
                 'logMusicSuccess': 'Birthday music played successfully!',
                 'logMusicFail': 'Birthday music failed to play: ',
                 'logSwitchTo': 'Switched countdown target to',
@@ -136,7 +174,7 @@
                 'headline': '私の18歳の誕生日までの残り時間！',
                 'button00': '00:00:00に切り替え',
                 'button16': '16:00:00に切り替え',
-                'logCountdownEnded': 'カウントダウンが終了しました、お誕生日おめでとうございます！',
+                'logCountdownEnded': 'お誕生日おめでとう！🎂',
                 'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
                 'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
                 'logSwitchTo': 'カウントダウンのターゲットを切り替えました：',
@@ -165,7 +203,7 @@
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
             } else {
-                document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'] + " 🎉";
+                document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'];
                 playBirthdayMusic();
             }
 
