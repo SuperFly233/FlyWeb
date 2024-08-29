@@ -185,24 +185,24 @@
         const translations = {
             'zh': {
                 'headline': '距离切生日蛋糕还有:',
-                'logCountdownEnded': '生日快乐!🎂',
+                'logCountdownEnded': '🎂启动!!',
                 'logMusicSuccess': '生日音乐播放成功!',
                 'logMusicFail': '生日音乐播放失败: ',
-                'browserTitle': '生日快乐🎂!'
+                'browserTitle': '🎂启动!!'
             },
             'en': {
                 'headline': 'Time left until cake cutting:',
-                'logCountdownEnded': 'Happy Birthday!🎂',
+                'logCountdownEnded': '🎂 Start!!',
                 'logMusicSuccess': 'Birthday music played successfully!',
                 'logMusicFail': 'Birthday music failed to play: ',
-                'browserTitle': 'Happy Birthday🎂!'
+                'browserTitle': '🎂 Start!!'
             },
             'ja': {
                 'headline': 'ケーキカットまでの残り時間:',
-                'logCountdownEnded': 'お誕生日おめでとう！🎂',
+                'logCountdownEnded': '🎂スタート!!',
                 'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
                 'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
-                'browserTitle': 'お誕生日おめでとう🎂！'
+                'browserTitle': '🎂スタート!!'
             }
         };
 
@@ -245,7 +245,7 @@
         function showBirthdayMessage() {
             document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
             countdownEnded = true; // 标记倒计时是否结束
-            document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"生日快乐🎂!"
+            document.title = translations[currentLanguage]['browserTitle']; // 更新网页标题为"🎂启动!!"
             playBirthdayMusic();
             createFireworks(); // 启动烟花特效
         }
@@ -329,6 +329,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.7.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.7.1 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
