@@ -223,33 +223,34 @@
             const now = new Date().getTime();
             let timeLeft = targetDate - now;
 
-            let days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            const milliseconds = Math.floor(timeLeft % 1000).toString().padStart(3, '0');
-
-            if (days === '00') {
-                days = ''; // 隐藏天数
-            } else {
-                days += ':'; // 添加天数分隔符
-            }
-
-            document.getElementById("time-remaining").innerHTML = `${days}${hours}:${minutes}:${seconds}.${milliseconds}`;
-            document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
-
-            logMessage(`当前时间：${days}${hours}:${minutes}:${seconds}.${milliseconds}`); // 将当前倒计时输出到日志
-
-            if (timeLeft <= 60000 && timeLeft > 10000) { // 倒计时前60秒到10秒时闪动
-                document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#f0e68c" : "#ffa07a";
-            }
-
-            if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
-                document.body.style.backgroundColor = timeLeft % 500 < 250 ? "#ffdddd" : "#ddddff"; // 剧烈闪烁背景
-            }
-
             if (timeLeft > 0) {
+                let days = Math.floor(timeLeft / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
+                const milliseconds = Math.floor(timeLeft % 1000).toString().padStart(3, '0');
+
+                if (days === '00') {
+                    days = ''; // 隐藏天数
+                } else {
+                    days += ':'; // 添加天数分隔符
+                }
+
+                document.getElementById("time-remaining").innerHTML = `${days}${hours}:${minutes}:${seconds}.${milliseconds}`;
+                document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
+
+                logMessage(`当前时间：${days}${hours}:${minutes}:${seconds}.${milliseconds}`); // 将当前倒计时输出到日志
+
+                if (timeLeft <= 60000 && timeLeft > 10000) { // 倒计时前60秒到10秒时闪动
+                    document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#f0e68c" : "#ffa07a";
+                }
+
+                if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
+                    document.body.style.backgroundColor = timeLeft % 500 < 250 ? "#ffdddd" : "#ddddff"; // 剧烈闪烁背景
+                }
+
                 setTimeout(countdown, 10);
+
             } else {
                 document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
                 countdownEnded = true; // 标记倒计时结束
@@ -326,7 +327,7 @@
             logMessage(`语言已切换为${language}`); // 输出语言切换日志
 
             if (countdownEnded) {
-                document.getElementById("time-remaining").innerHTML = translations[language]['logCountdownEnded'];
+                document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
             }
         }
 
@@ -377,6 +378,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.6.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.6.1 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
