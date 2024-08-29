@@ -13,20 +13,26 @@
             height: 100vh; /* 使页面高度始终充满视窗 */
             display: flex;
             flex-direction: column;
+            justify-content: space-between; /* 让标题和倒计时分布在上方和中间 */
+            align-items: center;
+            padding-bottom: 50px; /* 为按钮和版权信息留出空间 */
+            overflow: hidden;
+        }
+        #headline {
+            margin-top: 20px; /* 调整标题距离顶部的间距 */
+        }
+        #countdown-container {
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding-bottom: 250px; /* 为按钮和版权信息留出空间 */
-            overflow: hidden;
+            flex-grow: 1; /* 使倒计时居中 */
         }
         #countdown {
             font-size: 6em;
             color: #333;
             font-weight: bold;
             transition: transform 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
         }
         #countdown:hover {
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
@@ -139,9 +145,12 @@
 </head>
 <body>
     <h1 id="headline">距离我的18岁生日还有!</h1>
-    <div id="countdown">
-        <div id="time-remaining"></div>
-        <div id="target-date">2024.8.29 16:10:00</div>
+
+    <div id="countdown-container">
+        <div id="countdown">
+            <div id="time-remaining"></div>
+            <div id="target-date">2024.8.29 16:10:00</div>
+        </div>
     </div>
 
     <div id="button-container">
