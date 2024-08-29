@@ -22,17 +22,17 @@
             color: #333;
             font-weight: bold;
             transition: transform 0.2s;
-            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
         }
         #countdown:hover {
             transform: scale(1.1); /* 鼠标悬停时放大效果 */
         }
         #target-date {
-            font-size: 1.2em;
-            margin-top: 20px;
+            font-size: 1.5em;
+            margin-top: 10px;
             color: #666;
         }
         .firework {
@@ -68,7 +68,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        .time-button, .control-button {
+        .control-button {
             padding: 5px 10px;
             font-size: 0.8em;
             cursor: pointer;
@@ -80,7 +80,7 @@
             transition: transform 0.2s;
             opacity: 0.7; /* 调整按钮不太明显 */
         }
-        .time-button:active, .control-button:active {
+        .control-button:active {
             transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
         #language-selector {
@@ -125,15 +125,13 @@
 </head>
 <body>
     <h1 id="headline">距离我的18岁生日还有!</h1>
-    <div id="countdown"></div>
-    <div id="target-date">2024.8.29 16:00:00</div>
+    <div id="countdown">
+        <div id="time-remaining"></div>
+        <div id="target-date">2024.8.29 16:10:00</div>
+    </div>
 
     <div id="button-container">
-        <button class="time-button" onclick="setTargetTime('00:00:00')">切换到00:00:00</button>
-        <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button>
         <button class="control-button" onclick="simulateEnd()">模拟结束</button>
-        <button class="control-button" onclick="resetCountdown()">复位</button>
-        <button class="control-button" onclick="playMusic()">播放</button>
         <button class="control-button" onclick="pauseMusic()">暂停</button>
     </div>
 
@@ -147,7 +145,7 @@
     <audio id="button-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio> <!-- 按钮点击音效 -->
 
     <script>
-        let targetTime = '16:00:00'; // 默认时间
+        let targetTime = '16:10:00'; // 默认时间
         let currentLanguage = 'zh'; // 默认语言
         let countdownEnded = false; // 标记倒计时是否结束
 
@@ -155,7 +153,7 @@
             'zh': {
                 'headline': '距离我的18岁生日还有!',
                 'button00': '切换到00:00:00',
-                'button16': '切换到16:00:00',
+                'button16': '切换到16:10:00',
                 'logCountdownEnded': '生日快乐!🎂',
                 'logMusicSuccess': '生日音乐播放成功!',
                 'logMusicFail': '生日音乐播放失败: ',
@@ -165,7 +163,7 @@
             'en': {
                 'headline': 'Time left until my 18th Birthday!',
                 'button00': 'Switch to 00:00:00',
-                'button16': 'Switch to 16:00:00',
+                'button16': 'Switch to 16:10:00',
                 'logCountdownEnded': 'Happy Birthday!🎂',
                 'logMusicSuccess': 'Birthday music played successfully!',
                 'logMusicFail': 'Birthday music failed to play: ',
@@ -175,7 +173,7 @@
             'ja': {
                 'headline': '私の18歳の誕生日までの残り時間！',
                 'button00': '00:00:00に切り替え',
-                'button16': '16:00:00に切り替え',
+                'button16': '16:10:00に切り替え',
                 'logCountdownEnded': 'お誕生日おめでとう！🎂',
                 'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
                 'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
@@ -195,7 +193,7 @@
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000).toString().padStart(2, '0');
             const milliseconds = Math.floor(timeLeft % 1000).toString().padStart(3, '0');
 
-            document.getElementById("countdown").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
+            document.getElementById("time-remaining").innerHTML = `${days}:${hours}:${minutes}:${seconds}:${milliseconds}`;
             document.title = `${days}:${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
 
             if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
@@ -205,7 +203,7 @@
             if (timeLeft > 0) {
                 setTimeout(countdown, 10);
             } else {
-                document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'];
+                document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
                 countdownEnded = true; // 标记倒计时结束
                 playBirthdayMusic();
             }
@@ -216,13 +214,10 @@
             }
         }
 
-        function playBirthdayMusic() {
-            const music = document.getElementById("birthday-music");
-            music.play().then(() => {
-                console.log(translations[currentLanguage]['logMusicSuccess']);
-            }).catch(error => {
-                console.error(translations[currentLanguage]['logMusicFail'] + error);
-            });
+        function simulateEnd() {
+            document.getElementById("time-remaining").innerHTML = translations[currentLanguage]['logCountdownEnded'];
+            countdownEnded = true;
+            playBirthdayMusic();
         }
 
         function pauseMusic() {
@@ -230,17 +225,13 @@
             music.pause();
         }
 
-        function simulateEnd() {
-            countdownEnded = true;
-            document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'];
-            playBirthdayMusic();
-            createFireworks();
-        }
-
-        function resetCountdown() {
-            countdownEnded = false;
-            document.getElementById("countdown").innerHTML = '';
-            countdown(); // 重新开始倒计时
+        function playBirthdayMusic() {
+            const music = document.getElementById("birthday-music");
+            music.play().then(() => {
+                console.log(translations[currentLanguage]['logMusicSuccess']);
+            }).catch(error => {
+                console.error(translations[currentLanguage]['logMusicFail'] + error);
+            });
         }
 
         function setTargetTime(time) {
@@ -274,11 +265,11 @@
         function setLanguage(language) {
             currentLanguage = language;
             document.getElementById("headline").innerText = translations[language]['headline'];
-            document.querySelectorAll('.time-button')[0].innerText = translations[language]['button00'];
-            document.querySelectorAll('.time-button')[1].innerText = translations[language]['button16'];
+            document.querySelectorAll('.language-button')[0].innerText = translations[language]['button00'];
+            document.querySelectorAll('.language-button')[1].innerText = translations[language]['button16'];
 
             if (countdownEnded) {
-                document.getElementById("countdown").innerHTML = translations[language]['logCountdownEnded'];
+                document.getElementById("time-remaining").innerHTML = translations[language]['logCountdownEnded'];
             }
         }
 
