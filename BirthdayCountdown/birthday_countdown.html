@@ -152,7 +152,7 @@
         <h1 id="headline">距离切生日蛋糕还有:</h1>
         <div id="countdown">
             <div id="time-remaining"></div>
-            <div id="target-date">2024.8.29 18:30:00</div>
+            <div id="target-date">2024.8.29 18:00:00</div>
         </div>
     </div>
 
@@ -178,7 +178,7 @@
     <audio id="button-sound" src="https://www.soundjay.com/button/sounds/button-16.mp3"></audio> <!-- 按钮点击音效 -->
 
     <script>
-        let targetTime = '18:30:00'; // 默认时间
+        let targetTime = '18:00:00'; // 默认时间
         let currentLanguage = 'zh'; // 默认语言
         let countdownEnded = false; // 标记倒计时是否结束
 
@@ -227,12 +227,17 @@
                 document.getElementById("time-remaining").innerHTML = `${days}${hours}:${minutes}:${seconds}.${milliseconds}`;
                 document.title = `${days}${hours}:${minutes}:${seconds} - ${translations[currentLanguage]['browserTitle']}`; // 更新标签标题
 
-                if (timeLeft <= 60000 && timeLeft > 10000) { // 倒计时前60秒到10秒时闪动
-                    document.body.style.backgroundColor = timeLeft % 2000 < 1000 ? "#f0e68c" : "#ffa07a";
+                if (timeLeft <= 60000 && timeLeft > 30000) { // 倒计时前60秒到30秒切换颜色
+                    document.body.style.backgroundColor = timeLeft % 1200 < 400 ? "#00f" : (timeLeft % 1200 < 800 ? "#0f0" : "#f0f");
                 }
 
-                if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少
-                    document.body.style.backgroundColor = timeLeft % 500 < 250 ? "#ffdddd" : "#ddddff"; // 剧烈闪烁背景
+                if (timeLeft <= 30000 && timeLeft > 10000) { // 倒计时前30秒到10秒快速切换颜色
+                    document.body.style.backgroundColor = timeLeft % 600 < 200 ? "#00f" : (timeLeft % 600 < 400 ? "#0f0" : "#f0f");
+                }
+
+                if (timeLeft <= 10000 && timeLeft > 0) { // 剩余10秒或更少时快速切换颜色并调整字体大小
+                    document.body.style.backgroundColor = timeLeft % 300 < 100 ? "#f00" : (timeLeft % 300 < 200 ? "#ffa500" : "#ffd700");
+                    document.getElementById("time-remaining").style.transform = `scale(${1 + 0.1 * Math.sin((10000 - timeLeft) / 100)})`;
                 }
 
                 setTimeout(countdown, 10);
@@ -281,11 +286,15 @@
         }
 
         function createFireworks() {
+            const colors = ["#f00", "#ffa500", "#ffd700"];
             for (let i = 0; i < 10; i++) {
                 const firework = document.createElement("div");
                 firework.classList.add("firework");
                 firework.style.left = `${Math.random() * 100}%`;
                 firework.style.top = `${Math.random() * 100}%`;
+                firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                firework.style.width = `${Math.random() * 5 + 2}px`;
+                firework.style.height = firework.style.width;
                 document.body.appendChild(firework);
 
                 setTimeout(() => {
@@ -329,6 +338,6 @@
         countdown(); // 初始化倒计时
     </script>
 
-    <div id="copyright">v1.7.1 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
+    <div id="copyright">v1.8.0 Copyright © 2012-2024 Yi Xiaowei. All rights reserved.</div> <!-- 添加版本号并移动到页面底部 -->
 </body>
 </html>
