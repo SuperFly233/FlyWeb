@@ -71,21 +71,6 @@
         .time-button:active {
             transform: scale(0.9); /* 按钮点击时缩小效果 */
         }
-        #log {
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 20px;
-            max-height: 150px;
-            overflow-y: auto;
-            text-align: left;
-            margin-left: auto;
-            margin-right: auto;
-            width: 50%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
         #language-selector {
             margin-top: 20px;
         }
@@ -100,9 +85,6 @@
             #countdown {
                 font-size: 3em; /* 非常小的屏幕上将字体调整为3em */
             }
-            #log {
-                width: 90%; /* 在小屏幕上调整日志宽度 */
-            }
         }
     </style>
 </head>
@@ -116,11 +98,10 @@
         <button class="time-button" onclick="setTargetTime('16:00:00')">切换到16:00:00</button>
     </div>
 
-    <div id="log"></div> <!-- 事件日志 -->
-
     <div id="language-selector">
         <button class="time-button" onclick="setLanguage('zh')">中文</button>
         <button class="time-button" onclick="setLanguage('en')">English</button>
+        <button class="time-button" onclick="setLanguage('ja')">日本語</button>
     </div>
 
     <audio id="birthday-music" src="https://superfly233.github.io/FlyWeb/sounds/birthday.mp3"></audio>
@@ -128,7 +109,6 @@
 
     <script>
         let targetTime = '16:00:00'; // 默认时间
-        let logContainer = document.getElementById("log");
         let currentLanguage = 'zh'; // 默认语言
 
         const translations = {
@@ -151,6 +131,16 @@
                 'logMusicFail': 'Birthday music failed to play: ',
                 'logSwitchTo': 'Switched countdown target to',
                 'browserTitle': 'Birthday Countdown!'
+            },
+            'ja': {
+                'headline': '私の18歳の誕生日までの残り時間！',
+                'button00': '00:00:00に切り替え',
+                'button16': '16:00:00に切り替え',
+                'logCountdownEnded': 'カウントダウンが終了しました、お誕生日おめでとうございます！',
+                'logMusicSuccess': '誕生日の音楽が正常に再生されました！',
+                'logMusicFail': '誕生日の音楽の再生に失敗しました: ',
+                'logSwitchTo': 'カウントダウンのターゲットを切り替えました：',
+                'browserTitle': '誕生日のカウントダウン！'
             }
         };
 
@@ -176,7 +166,6 @@
                 setTimeout(countdown, 10);
             } else {
                 document.getElementById("countdown").innerHTML = translations[currentLanguage]['logCountdownEnded'] + " 🎉";
-                logEvent(translations[currentLanguage]['logCountdownEnded']);
                 playBirthdayMusic();
             }
 
@@ -189,16 +178,15 @@
         function playBirthdayMusic() {
             const music = document.getElementById("birthday-music");
             music.play().then(() => {
-                logEvent(translations[currentLanguage]['logMusicSuccess']);
+                console.log(translations[currentLanguage]['logMusicSuccess']);
             }).catch(error => {
-                logEvent(translations[currentLanguage]['logMusicFail'] + error);
+                console.error(translations[currentLanguage]['logMusicFail'] + error);
             });
         }
 
         function setTargetTime(time) {
             targetTime = time;
             document.getElementById("target-date").innerText = `2024.8.29 ${time}`; // 更新显示的目标时间
-            logEvent(`${translations[currentLanguage]['logSwitchTo']} ${time}`);
             playButtonSound();
             countdown(); // 重新开始倒计时
         }
@@ -224,18 +212,11 @@
             }
         }
 
-        function logEvent(message) {
-            const timestamp = new Date().toLocaleTimeString();
-            logContainer.innerHTML += `<p>[${timestamp}] ${message}</p>`;
-            logContainer.scrollTop = logContainer.scrollHeight; // 自动滚动到底部
-        }
-
         function setLanguage(language) {
             currentLanguage = language;
             document.getElementById("headline").innerText = translations[language]['headline'];
             document.querySelectorAll('.time-button')[0].innerText = translations[language]['button00'];
             document.querySelectorAll('.time-button')[1].innerText = translations[language]['button16'];
-            logEvent(`语言切换到 ${language === 'zh' ? '中文' : 'English'}`);
         }
 
         countdown(); // 初始化倒计时
