@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fly's Blog</title>
+    <title>2025 Countdown</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(to right, #6a11cb, #2575fc); /* 渐变背景 */
+            background: linear-gradient(to right, #00c6ff, #0072ff); /* 渐变背景 */
             color: white;
             display: flex;
             justify-content: center;
@@ -19,41 +19,63 @@
             padding: 0;
             opacity: 0;
             animation: fadeIn 1s forwards;
-            overflow: hidden; /* 禁止页面滚动 */
+            overflow: hidden;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* 标题文字阴影 */
+            animation: slideIn 1s ease-out;
         }
 
-        p {
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-        }
-
-        .btn-container {
+        .countdown {
+            font-size: 3rem;
+            font-weight: bold;
             display: flex;
-            flex-direction: column; /* 垂直排列按钮 */
-            gap: 20px; /* 按钮之间的间距 */
-            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInButtons 2s ease-in-out;
+        }
+
+        .countdown span {
+            font-size: 2.5rem;
+            font-weight: normal;
+        }
+
+        .input-container {
+            margin-top: 40px;
+            font-size: 1.2rem;
+            color: white;
+            text-align: center;
+        }
+
+        input[type="datetime-local"] {
+            font-size: 1rem;
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            background-color: #ffffff;
+            color: #333;
         }
 
         .btn {
             background: linear-gradient(45deg, #ff6a00, #ee0979); /* 渐变按钮 */
             color: white;
-            padding: 15px 32px;
-            font-size: 18px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
             cursor: pointer;
             border: none;
             border-radius: 8px;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            margin-top: 20px;
+            transition: all 0.4s ease;
         }
 
         .btn:hover {
-            transform: scale(1.05); /* 放大效果 */
+            transform: scale(1.1);
         }
 
         footer {
@@ -64,6 +86,7 @@
             font-size: 1rem;
             color: white;
             opacity: 0.7;
+            animation: fadeInFooter 2s ease-out;
         }
 
         @keyframes fadeIn {
@@ -72,31 +95,101 @@
             }
         }
 
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
+        @keyframes slideIn {
+            0% {
+                transform: translateY(-100%);
             }
+            100% {
+                transform: translateY(0);
+            }
+        }
 
-            .btn {
-                padding: 12px 24px;
+        @keyframes fadeInButtons {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInFooter {
+            0% {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            100% {
+                opacity: 0.7;
+                transform: translateY(0);
             }
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Fly's Blog</h1>
+    <h1>2025 Countdown</h1>
 
-    <div class="btn-container">
-        <!-- Birthday Countdown Button -->
-        <a href="https://superfly233.github.io/FlyWeb/BirthdayCountdown/birthday_countdown.html" class="btn">Join the Birthday Countdown</a>
-        
-        <!-- 2025 Countdown Button -->
-        <a href="https://superfly233.github.io/FlyWeb/2025Countdown/2025_countdown.html" class="btn">Join the 2025 Countdown</a>
+    <div class="countdown">
+        <div>距离2025年还有</div>
+        <div id="countdown-time">00:00:00:00</div>
+    </div>
+
+    <div class="input-container">
+        <label for="datetime-input">设置你想要的目标时间:</label><br>
+        <input type="datetime-local" id="datetime-input" />
+        <button class="btn" onclick="updateCountdown()">更新目标时间</button>
     </div>
 
     <!-- 版权信息 -->
     <footer>
-        Copyright © 2012-2025 Yi Xiaowei. All rights reserved.
+        Copyright © 2012-<span id="current-year"></span> Yi Xiaowei. All rights reserved.
     </footer>
+
+    <script>
+        // 获取当前年份并更新版权信息
+        document.getElementById("current-year").textContent = new Date().getFullYear();
+
+        // 设置目标时间（2025年1月1日00:00:00）
+        const targetDate = new Date("January 1, 2025 00:00:00").getTime();
+
+        // 更新倒计时
+        function updateCountdown() {
+            const userDate = document.getElementById('datetime-input').value;
+            if (userDate) {
+                const newTargetDate = new Date(userDate).getTime();
+                if (newTargetDate) {
+                    countdown(newTargetDate);
+                }
+            } else {
+                countdown(targetDate); // 如果没有选择日期，使用默认目标时间
+            }
+        }
+
+        // 倒计时函数
+        function countdown(targetDate) {
+            const interval = setInterval(function() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance <= 0) {
+                    clearInterval(interval);
+                    document.getElementById("countdown-time").textContent = "00:00:00:00";
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("countdown-time").textContent = 
+                    `${days}:${hours < 10 ? "0" + hours : hours}:${minutes < 10 ? "0" + minutes : minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
+            }, 1000);
+        }
+
+        // 页面加载时自动启动默认倒计时
+        countdown(targetDate);
+    </script>
 </body>
 </html>
