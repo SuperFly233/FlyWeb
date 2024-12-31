@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(to right, #00c6ff, #0072ff); /* 渐变背景 */
+            background: #2a3d55; /* 默认背景色 */
             color: white;
             display: flex;
             justify-content: center;
@@ -17,21 +17,25 @@
             flex-direction: column;
             margin: 0;
             padding: 0;
+            overflow: hidden;
             opacity: 0;
             animation: fadeIn 1s forwards;
-            overflow: hidden;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* 标题文字阴影 */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             animation: slideIn 1s ease-out;
         }
 
         .btn-container {
             margin-top: 30px;
             text-align: center;
+            display: flex;
+            flex-direction: column; /* 按钮竖着排列 */
+            gap: 20px;
+            opacity: 0;
             animation: fadeInButtons 2s ease-in-out;
         }
 
@@ -43,12 +47,18 @@
             cursor: pointer;
             border: none;
             border-radius: 8px;
-            margin-top: 20px;
             transition: all 0.4s ease;
         }
 
         .btn:hover {
             transform: scale(1.1);
+        }
+
+        .arrow {
+            margin-top: 20px;
+            font-size: 3rem;
+            cursor: pointer;
+            animation: bounce 1.5s infinite;
         }
 
         footer {
@@ -98,14 +108,71 @@
                 transform: translateY(0);
             }
         }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        /* 下滑后的内容部分 */
+        .content {
+            display: none;
+            animation: slideDown 1s forwards;
+        }
+
+        @keyframes slideDown {
+            0% {
+                transform: translateY(-100vh);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        .content.show {
+            display: block;
+        }
+
+        .countdown-container {
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        .countdown {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+
+        .countdown-time {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #ff6a00;
+        }
     </style>
 </head>
 <body>
-    <h1>Fly's Blog</h1>
-    
-    <div class="btn-container">
-        <button class="btn" onclick="window.location.href='BirthdayCountdown/birthday_countdown.html'">2024 Birthday Countdown</button>
-        <button class="btn" onclick="window.location.href='2025Countdown/2025_countdown.html'">2025 Countdown</button>
+    <h1>Welcome to Fly's Blog</h1>
+
+    <!-- 向下箭头 -->
+    <div class="arrow" onclick="showContent()">↓ Scroll Down</div>
+
+    <!-- 隐藏的内容部分 -->
+    <div class="content" id="content">
+        <div class="btn-container">
+            <button class="btn" onclick="window.location.href='BirthdayCountdown/birthday_countdown.html'">2024 Birthday Countdown</button>
+            <button class="btn" onclick="window.location.href='2025Countdown/2025_countdown.html'">2025 Countdown</button>
+        </div>
+
+        <!-- 倒计时显示 -->
+        <div class="countdown-container">
+            <h2>距离2025年1月1日00:00:00还有</h2>
+            <div id="countdown-time" class="countdown-time">--:--:--:--</div>
+            <p>目标日期：2025年1月1日 00:00:00</p>
+        </div>
     </div>
 
     <!-- 版权信息 -->
@@ -114,8 +181,37 @@
     </footer>
 
     <script>
-        // 获取当前年份并更新版权信息
+        // 自动更新版权年份
         document.getElementById("current-year").textContent = new Date().getFullYear();
+
+        // 向下滚动后显示内容
+        function showContent() {
+            document.getElementById('content').classList.add('show');
+            document.querySelector('body').style.overflowY = 'scroll'; // 允许滚动
+        }
+
+        // 倒计时功能
+        function updateCountdown() {
+            var targetDate = new Date('January 1, 2025 00:00:00').getTime();
+            var now = new Date().getTime();
+            var timeLeft = targetDate - now;
+
+            var days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            document.getElementById("countdown-time").innerHTML =
+                days + ":" + (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                (seconds < 10 ? "0" + seconds : seconds);
+
+            if (timeLeft < 0) {
+                document.getElementById("countdown-time").innerHTML = "Time's up!";
+            }
+        }
+
+        setInterval(updateCountdown, 1000); // 每秒更新一次倒计时
     </script>
 </body>
 </html>
