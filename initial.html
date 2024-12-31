@@ -8,7 +8,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: linear-gradient(to right, #6a11cb, #2575fc); /* 渐变背景 */
+            background: linear-gradient(to right, #00c6ff, #0072ff); /* 渐变背景 */
             color: white;
             display: flex;
             justify-content: center;
@@ -18,50 +18,37 @@
             margin: 0;
             padding: 0;
             opacity: 0;
-            animation: fadeIn 1.5s forwards;
-            overflow: hidden; /* 禁止页面滚动 */
+            animation: fadeIn 1s forwards;
+            overflow: hidden;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* 标题文字阴影 */
             animation: slideIn 1s ease-out;
         }
 
-        p {
-            font-size: 1.5rem;
-            margin-bottom: 40px;
-        }
-
         .btn-container {
-            display: flex;
-            flex-direction: column; /* 垂直排列按钮 */
-            gap: 20px; /* 按钮之间的间距 */
-            align-items: center;
+            margin-top: 30px;
+            text-align: center;
             animation: fadeInButtons 2s ease-in-out;
         }
 
         .btn {
             background: linear-gradient(45deg, #ff6a00, #ee0979); /* 渐变按钮 */
             color: white;
-            padding: 15px 32px;
-            font-size: 18px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
             cursor: pointer;
             border: none;
             border-radius: 8px;
-            text-decoration: none;
+            margin-top: 20px;
             transition: all 0.4s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* 添加阴影 */
         }
 
         .btn:hover {
-            transform: scale(1.1); /* 放大效果 */
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4); /* 悬浮时加大阴影 */
-        }
-
-        .btn:active {
-            transform: scale(0.98); /* 点击时轻微缩小 */
+            transform: scale(1.1);
         }
 
         footer {
@@ -111,32 +98,24 @@
                 transform: translateY(0);
             }
         }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            .btn {
-                padding: 12px 24px;
-            }
-        }
     </style>
 </head>
 <body>
-    <h1>Welcome to Fly's Blog</h1>
-
+    <h1>Fly's Blog</h1>
+    
     <div class="btn-container">
-        <!-- Birthday Countdown Button -->
-        <a href="https://superfly233.github.io/FlyWeb/BirthdayCountdown/birthday_countdown.html" class="btn">2024 Birthday Countdown</a>
-        
-        <!-- 2025 Countdown Button -->
-        <a href="https://superfly233.github.io/FlyWeb/2025Countdown/2025_countdown.html" class="btn">2025 Countdown</a>
+        <button class="btn" onclick="window.location.href='BirthdayCountdown/birthday_countdown.html'">2024 Birthday Countdown</button>
+        <button class="btn" onclick="window.location.href='2025Countdown/2025_countdown.html'">2025 Countdown</button>
     </div>
 
     <!-- 版权信息 -->
     <footer>
-        Copyright © 2012-2025 Yi Xiaowei. All rights reserved.
+        Copyright © 2012-<span id="current-year"></span> Yi Xiaowei. All rights reserved.
     </footer>
+
+    <script>
+        // 获取当前年份并更新版权信息
+        document.getElementById("current-year").textContent = new Date().getFullYear();
+    </script>
 </body>
 </html>
