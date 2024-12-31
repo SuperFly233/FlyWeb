@@ -8,23 +8,20 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background: #2a3d55; /* 初始背景色 */
             color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow-x: hidden;
+            height: 100%;
+            background: linear-gradient(to bottom, #2a3d55, #1b2a35); /* 初始渐变背景 */
             opacity: 0;
             animation: fadeIn 1s forwards;
         }
 
         h1 {
             font-size: 3rem;
-            margin-bottom: 20px;
+            margin-top: 30vh;
+            text-align: center;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             animation: slideIn 1s ease-out;
         }
@@ -32,36 +29,38 @@
         .arrow {
             margin-top: 20px;
             font-size: 3rem;
-            cursor: pointer;
+            text-align: center;
             animation: bounce 1.5s infinite;
         }
 
+        /* 页面内容区域 */
         .content {
             display: none;
-            animation: slideDown 1s forwards;
             width: 100%;
-            height: auto;
             padding: 30px;
-            background: #f5f5f5; /* 普通底色 */
+            background: white;
             color: #333;
         }
 
-        .content.show {
-            display: block;
+        footer {
+            text-align: center;
+            font-size: 1rem;
+            color: #333;
+            margin-top: 30px;
         }
 
         .btn-container {
             margin-top: 30px;
             text-align: center;
             display: flex;
-            flex-direction: column; /* 按钮竖着排列 */
+            flex-direction: column;
             gap: 20px;
             opacity: 0;
             animation: fadeInButtons 2s ease-in-out;
         }
 
         .btn {
-            background: linear-gradient(45deg, #ff6a00, #ee0979); /* 渐变按钮 */
+            background: linear-gradient(45deg, #ff6a00, #ee0979);
             color: white;
             padding: 12px 30px;
             font-size: 1.2rem;
@@ -73,29 +72,6 @@
 
         .btn:hover {
             transform: scale(1.1);
-        }
-
-        .countdown-container {
-            margin-top: 50px;
-            text-align: center;
-        }
-
-        .countdown {
-            font-size: 3rem;
-            margin: 20px 0;
-        }
-
-        .countdown-time {
-            font-size: 5rem;
-            font-weight: bold;
-            color: #ff6a00;
-        }
-
-        footer {
-            text-align: center;
-            font-size: 1rem;
-            color: #333;
-            margin-top: 30px;
         }
 
         /* 动画 */
@@ -134,34 +110,47 @@
             }
         }
 
-        @keyframes slideDown {
-            0% {
-                transform: translateY(-100vh);
-            }
-            100% {
-                transform: translateY(0);
-            }
+        /* 滑动后背景渐变效果 */
+        .background-white {
+            background: #ffffff;
+            transition: background 1s ease-in-out;
         }
 
-        /* 动态背景切换效果 */
-        .background {
-            transition: background 2s ease-in-out;
+        /* 隐藏的文本内容 */
+        .hidden {
+            display: none;
         }
 
-        /* 具体倒计时显示 */
-        #countdown-time {
-            font-size: 5rem;
+        .scroll-text {
+            font-size: 2rem;
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+        }
+
+        /* 页面底部内容 */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 1rem;
+            color: #333;
+            background: white;
+        }
+
+        .footer span {
             font-weight: bold;
-            color: #ff6a00;
         }
 
     </style>
 </head>
-<body class="background">
+<body>
     <h1>Welcome to Fly's Blog</h1>
 
-    <!-- 向下箭头 -->
-    <div class="arrow" onclick="showContent()">↓ Scroll Down</div>
+    <div class="scroll-text">
+        ↓ Please scroll down
+    </div>
 
     <!-- 隐藏的内容部分 -->
     <div class="content" id="content">
@@ -169,53 +158,29 @@
             <button class="btn" onclick="window.location.href='BirthdayCountdown/birthday_countdown.html'">2024 Birthday Countdown</button>
             <button class="btn" onclick="window.location.href='2025Countdown/2025_countdown.html'">2025 Countdown</button>
         </div>
-
-        <!-- 倒计时显示 -->
-        <div class="countdown-container">
-            <h2>距离2025年1月1日00:00:00还有</h2>
-            <div id="countdown-time" class="countdown-time">--:--:--:--</div>
-            <p>目标日期：2025年1月1日 00:00:00</p>
-        </div>
+        <!-- 版权信息 -->
+        <footer>
+            Copyright © 2012-<span id="current-year"></span> Yi Xiaowei. All rights reserved.
+        </footer>
     </div>
-
-    <!-- 版权信息 -->
-    <footer>
-        Copyright © 2012-<span id="current-year"></span> Yi Xiaowei. All rights reserved.
-    </footer>
 
     <script>
         // 自动更新版权年份
         document.getElementById("current-year").textContent = new Date().getFullYear();
 
-        // 向下滚动后显示内容
-        function showContent() {
-            document.getElementById('content').classList.add('show');
-            document.querySelector('body').style.overflowY = 'scroll'; // 允许滚动
-            document.body.classList.add("background");  // 切换背景色
-        }
-
-        // 倒计时功能
-        function updateCountdown() {
-            var targetDate = new Date('January 1, 2025 00:00:00').getTime();
-            var now = new Date().getTime();
-            var timeLeft = targetDate - now;
-
-            var days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-            var hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-            var seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-            document.getElementById("countdown-time").innerHTML =
-                days + ":" + (hours < 10 ? "0" + hours : hours) + ":" +
-                (minutes < 10 ? "0" + minutes : minutes) + ":" +
-                (seconds < 10 ? "0" + seconds : seconds);
-
-            if (timeLeft < 0) {
-                document.getElementById("countdown-time").innerHTML = "Time's up!";
+        // 检测用户是否已经下滑
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > window.innerHeight / 2) { // 滚动过一半就显示内容
+                document.getElementById('content').style.display = 'block';
+                document.body.classList.add('background-white'); // 更改背景色为白色
+                document.querySelector('.scroll-text').style.display = 'none'; // 隐藏下滑提示
             }
-        }
-
-        setInterval(updateCountdown, 1000); // 每秒更新一次倒计时
+        });
     </script>
+
+    <!-- 版权信息 -->
+    <div class="footer">
+        Copyright © 2012-<span id="current-year-footer"></span> Yi Xiaowei. All rights reserved.
+    </div>
 </body>
 </html>
