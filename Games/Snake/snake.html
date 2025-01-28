@@ -1,25 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>双控贪吃蛇</title>
+    <title>炸弹贪吃蛇</title>
     <style>
-        :root {
-            --snake-head: #e74c3c;
-            --snake-body: #c0392b;
-            --food-color: #2ecc71;
-            --bomb-color: #8e44ad;
-            --bg-color: #2c3e50;
-        }
-
         body {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: var(--bg-color);
+            background: #2c3e50;
             font-family: 'Arial Rounded MT Bold', Arial;
-            touch-action: none;
         }
 
         .game-container {
@@ -33,26 +24,15 @@
         #gameCanvas {
             border: 3px solid #ecf0f1;
             border-radius: 8px;
-            background: var(--bg-color);
+            background: #2c3e50;
         }
 
-        /* 新增触摸控制区域 */
-        .touch-controls {
-            position: absolute;
-            bottom: -120px;
-            width: 200px;
-            height: 200px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        }
-
-        /* 优化后的统计面板 */
         .dashboard {
             position: absolute;
-            left: -200px;
+            left: -180px;
             top: 50%;
             transform: translateY(-50%);
-            width: 180px;
+            width: 160px;
             padding: 20px;
             background: #34495e;
             border: 2px solid #ecf0f1;
@@ -60,142 +40,228 @@
             color: #ecf0f1;
         }
 
+        .stats {
+            margin: 15px 0;
+        }
+
         .stat-item {
             display: flex;
             justify-content: space-between;
-            margin: 10px 0;
+            margin: 8px 0;
             font-size: 14px;
         }
 
-        #highestScore {
-            color: #f1c40f;
-            font-size: 18px;
+        .bomb-counter {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        #score {
+            font-size: 36px;
+            color: #2ecc71;
+            text-align: center;
+            margin: 15px 0;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
         }
     </style>
 </head>
 <body>
     <div class="game-container">
         <div class="dashboard">
-            <div class="stat-item">
-                <span>最高分：</span>
-                <span id="highestScore">0</span>
+            <div id="score">0</div>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>食物：</span>
+                    <span id="foodCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>炸弹：</span>
+                    <span class="bomb-counter" id="bombCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>长度：</span>
+                    <span id="snakeLength">1</span>
+                </div>
             </div>
-            <div class="stat-item">
-                <span>长度：</span>
-                <span id="snakeLength">1</span>
-            </div>
-            <div class="stat-item">
-                <span>食物：</span>
-                <span id="foodCount">0</span>
-            </div>
-            <div class="stat-item">
-                <span>炸弹：</span>
-                <span id="bombCount">0</span>
+            <div class="instructions">
+                <p>▲▼◀▶ 控制方向</p>
+                <p>● 食物 +100分</p>
+                <p>☠ 炸弹游戏结束</p>
+                <p>自动穿墙</p>
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
-        <div class="touch-controls"></div>
     </div>
 
     <script>
-        // 新增本地存储记录
-        let highestScore = localStorage.getItem('snakeHighestScore') || 0;
-        
-        const Game = {
+        const config = {
             gridSize: 20,
             colors: {
-                snakeHead: 'var(--snake-head)',
-                snakeBody: 'var(--snake-body)',
-                food: 'var(--food-color)',
-                bomb: 'var(--bomb-color)'
+                snakeHead: '#e74c3c',
+                snakeBody: '#c0392b',
+                food: '#2ecc71',
+                bomb: '#8e44ad'
             },
-            bombSpawnRate: 0.3,
-            touchStartX: 0,
-            touchStartY: 0
+            bombSpawnRate: 0.2
         };
 
-        // 游戏初始化
+        // 初始化
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let snake = [], direction = 'right', score = 0;
-        let foodCount = 0, bombCount = 0;
-        let food, bomb, isPaused = false;
+        let snake = [];
+        let direction = 'right';
+        let score = 0;
+        let foodCount = 0;
+        let bombCount = 0;
+        let food, bomb;
 
         function init() {
             const size = Math.min(window.innerWidth - 300, 500);
             canvas.width = canvas.height = size;
-            snake = [{x: size/2, y: size/2}];
+            snake = [{x: canvas.width/2, y: canvas.height/2}];
             food = spawnFood();
-            bomb = Math.random() < Game.bombSpawnRate ? spawnBomb() : null;
+            bomb = Math.random() < config.bombSpawnRate ? spawnBomb() : null;
             score = 0;
+            foodCount = 0;
+            bombCount = 0;
             updateStats();
-            document.getElementById('highestScore').textContent = highestScore;
         }
 
-        // 新增暂停功能
-        function togglePause() {
-            isPaused = !isPaused;
-            if(!isPaused) gameLoop();
-        }
-
-        // 优化后的键盘控制（支持WASD和方向键）
-        document.addEventListener('keydown', (e) => {
-            const keyMap = {
-                'ArrowUp': 'up', 'KeyW': 'up',
-                'ArrowDown': 'down', 'KeyS': 'down',
-                'ArrowLeft': 'left', 'KeyA': 'left',
-                'ArrowRight': 'right', 'KeyD': 'right',
-                'Space': () => togglePause()
+        function spawnFood() {
+            return {
+                x: Math.floor(Math.random() * (canvas.width/config.gridSize)) * config.gridSize,
+                y: Math.floor(Math.random() * (canvas.height/config.gridSize)) * config.gridSize
             };
-            
-            if(keyMap[e.code]) {
-                if(typeof keyMap[e.code] === 'function') {
-                    keyMap[e.code]();
-                } else if(direction !== oppositeDir(keyMap[e.code])) {
-                    direction = keyMap[e.code];
-                }
-                e.preventDefault();
-            }
-        });
-
-        // 新增触摸控制
-        canvas.addEventListener('touchstart', (e) => {
-            Game.touchStartX = e.touches[0].clientX;
-            Game.touchStartY = e.touches[0].clientY;
-        });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const dx = e.touches[0].clientX - Game.touchStartX;
-            const dy = e.touches[0].clientY - Game.touchStartY;
-            
-            if(Math.abs(dx) > Math.abs(dy)) {
-                direction = dx > 0 && direction !== 'left' ? 'right' : 'left';
-            } else {
-                direction = dy > 0 && direction !== 'up' ? 'down' : 'up';
-            }
-        });
-
-        // 其他优化函数（spawnFood、drawSnake等保持类似结构，略）
-
-        // 新增最高分记录
-        function updateHighestScore() {
-            if(score > highestScore) {
-                highestScore = score;
-                localStorage.setItem('snakeHighestScore', highestScore);
-            }
         }
 
-        // 游戏主循环
-        function gameLoop() {
-            if(isPaused) return;
+        function spawnBomb() {
+            return {
+                x: Math.floor(Math.random() * (canvas.width/config.gridSize)) * config.gridSize,
+                y: Math.floor(Math.random() * (canvas.height/config.gridSize)) * config.gridSize,
+                active: true
+            };
+        }
+
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                // 蛇头特殊样式
+                if(index === 0) {
+                    ctx.fillStyle = config.colors.snakeHead;
+                    ctx.beginPath();
+                    ctx.arc(segment.x + config.gridSize/2, segment.y + config.gridSize/2, 
+                            config.gridSize/2 - 2, 0, Math.PI*2);
+                    ctx.fill();
+                    // 添加蛇眼
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(segment.x + config.gridSize/3, segment.y + config.gridSize/3, 2, 0, Math.PI*2);
+                    ctx.arc(segment.x + 2*config.gridSize/3, segment.y + config.gridSize/3, 2, 0, Math.PI*2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = config.colors.snakeBody;
+                    ctx.fillRect(segment.x, segment.y, config.gridSize-2, config.gridSize-2);
+                }
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = config.colors.food;
+            ctx.beginPath();
+            ctx.roundRect(food.x, food.y, config.gridSize-2, config.gridSize-2, 5);
+            ctx.fill();
+        }
+
+        function drawBomb() {
+            if(!bomb || !bomb.active) return;
+            ctx.fillStyle = config.colors.bomb;
+            ctx.font = '20px Arial';
+            ctx.fillText('☠', bomb.x + 2, bomb.y + 18);
+        }
+
+        function update() {
+            const head = {...snake[0]};
+            switch(direction) {
+                case 'up': head.y -= config.gridSize; break;
+                case 'down': head.y += config.gridSize; break;
+                case 'left': head.x -= config.gridSize; break;
+                case 'right': head.x += config.gridSize; break;
+            }
+
+            // 穿墙处理
+            head.x = (head.x + canvas.width) % canvas.width;
+            head.y = (head.y + canvas.height) % canvas.height;
+
+            // 碰撞检测
+            if(checkCollision(head, food)) {
+                score += 100;
+                foodCount++;
+                snake.unshift(head);
+                food = spawnFood();
+                if(Math.random() < config.bombSpawnRate) bomb = spawnBomb();
+            } else {
+                snake = [head, ...snake.slice(0, -1)];
+            }
+
+            // 炸弹检测
+            if(bomb && bomb.active && checkCollision(head, bomb)) {
+                gameOver();
+                return;
+            }
+
+            // 自碰检测
+            if(snake.slice(1).some(segment => checkCollision(head, segment))) {
+                gameOver();
+            }
+
+            updateStats();
+        }
+
+        function checkCollision(a, b) {
+            return a.x === b.x && a.y === b.y;
+        }
+
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('foodCount').textContent = foodCount;
+            document.getElementById('bombCount').textContent = bombCount;
+            document.getElementById('snakeLength').textContent = snake.length;
+        }
+
+        function gameOver() {
+            alert(`游戏结束！得分：${score}`);
+            init();
+        }
+
+        function draw() {
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawSnake();
+            drawFood();
+            drawBomb();
+        }
+
+        // 控制
+        document.addEventListener('keydown', (e) => {
+            const dirMap = {
+                ArrowUp: 'up', ArrowDown: 'down',
+                ArrowLeft: 'left', ArrowRight: 'right'
+            };
+            if(dirMap[e.key] && direction !== oppositeDir(dirMap[e.key])) {
+                direction = dirMap[e.key];
+            }
+        });
+
+        function oppositeDir(newDir) {
+            const dirPairs = {up: 'down', down: 'up', left: 'right', right: 'left'};
+            return dirPairs[newDir];
+        }
+
+        // 初始化游戏
+        init();
+        setInterval(() => {
             update();
             draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        init();
-        gameLoop();
+        }, 100);
     </script>
 </body>
 </html>
