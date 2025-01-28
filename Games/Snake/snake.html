@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>炸弹贪吃蛇</title>
+    <title>经典贪吃蛇</title>
     <style>
         body {
             display: flex;
@@ -29,39 +29,52 @@
 
         .dashboard {
             position: absolute;
-            left: -180px;
+            left: -160px;
             top: 50%;
             transform: translateY(-50%);
-            width: 160px;
-            padding: 20px;
+            width: 140px;
+            padding: 15px;
             background: #34495e;
             border: 2px solid #ecf0f1;
             border-radius: 10px;
             color: #ecf0f1;
         }
 
-        .stats {
-            margin: 15px 0;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            font-size: 14px;
-        }
-
-        .bomb-counter {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
         #score {
-            font-size: 36px;
-            color: #2ecc71;
+            font-size: 32px;
+            color: #e74c3c;
             text-align: center;
-            margin: 15px 0;
-            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+            margin: 10px 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .instructions {
+            font-size: 13px;
+            line-height: 1.4;
+            margin-top: 15px;
+        }
+
+        .speed-control {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        button {
+            background: #3498db;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 3px;
+        }
+
+        .food-counter {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ecf0f1;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -69,167 +82,160 @@
     <div class="game-container">
         <div class="dashboard">
             <div id="score">0</div>
-            <div class="stats">
-                <div class="stat-item">
-                    <span>食物：</span>
-                    <span id="foodCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span>炸弹：</span>
-                    <span class="bomb-counter" id="bombCount">0</span>
-                </div>
-                <div class="stat-item">
-                    <span>长度：</span>
-                    <span id="snakeLength">1</span>
-                </div>
-            </div>
             <div class="instructions">
                 <p>▲▼◀▶ 控制方向</p>
-                <p>● 食物 +100分</p>
-                <p>☠ 炸弹游戏结束</p>
+                <p>● 红色食物 +100分</p>
+                <p>★ 金色食物 +300分</p>
+                <p>撞自己会失败</p>
                 <p>自动穿墙</p>
+            </div>
+            <div class="speed-control">
+                <button onclick="changeSpeed(0.9)">加速</button>
+                <button onclick="changeSpeed(1.1)">减速</button>
             </div>
         </div>
         <canvas id="gameCanvas"></canvas>
+        <div class="food-counter">已吃食物：<span id="foodCount">0</span></div>
     </div>
 
     <script>
+        // 游戏配置
         const config = {
-            gridSize: 20,
+            baseSpeed: 100,
             colors: {
-                snakeHead: '#e74c3c',
-                snakeBody: '#c0392b',
-                food: '#2ecc71',
-                bomb: '#8e44ad'
-            },
-            bombSpawnRate: 0.2
+                snakeHead: '#2ecc71',
+                snakeBody: '#27ae60',
+                food: '#e74c3c',
+                specialFood: '#f1c40f'
+            }
         };
 
-        // 初始化
+        // 初始化游戏
         const canvas = document.getElementById('gameCanvas');
+        const container = document.querySelector('.game-container');
+        const setCanvasSize = () => {
+            const size = Math.min(window.innerWidth - 300, 500);
+            canvas.width = canvas.height = size;
+        };
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+
         const ctx = canvas.getContext('2d');
-        let snake = [];
+        let gameLoop, speed = config.baseSpeed;
+        let snake = [{ x: canvas.width/2, y: canvas.height/2 }];
         let direction = 'right';
         let score = 0;
         let foodCount = 0;
-        let bombCount = 0;
-        let food, bomb;
+        let currentFood = generateFood();
+        let specialFood = null;
 
-        function init() {
-            const size = Math.min(window.innerWidth - 300, 500);
-            canvas.width = canvas.height = size;
-            snake = [{x: canvas.width/2, y: canvas.height/2}];
-            food = spawnFood();
-            bomb = Math.random() < config.bombSpawnRate ? spawnBomb() : null;
-            score = 0;
-            foodCount = 0;
-            bombCount = 0;
-            updateStats();
-        }
-
-        function spawnFood() {
+        // 生成普通食物
+        function generateFood() {
             return {
-                x: Math.floor(Math.random() * (canvas.width/config.gridSize)) * config.gridSize,
-                y: Math.floor(Math.random() * (canvas.height/config.gridSize)) * config.gridSize
+                x: getRandomPosition(),
+                y: getRandomPosition(),
+                type: 'normal'
             };
         }
 
-        function spawnBomb() {
+        // 生成特殊食物
+        function generateSpecialFood() {
             return {
-                x: Math.floor(Math.random() * (canvas.width/config.gridSize)) * config.gridSize,
-                y: Math.floor(Math.random() * (canvas.height/config.gridSize)) * config.gridSize,
-                active: true
+                x: getRandomPosition(),
+                y: getRandomPosition(),
+                type: 'special',
+                alpha: 1
             };
         }
 
+        function getRandomPosition() {
+            const grid = canvas.width / 20;
+            return Math.floor(Math.random() * (canvas.width / grid)) * grid;
+        }
+
+        // 绘制蛇身（清晰分段样式）
         function drawSnake() {
             snake.forEach((segment, index) => {
-                // 蛇头特殊样式
-                if(index === 0) {
-                    ctx.fillStyle = config.colors.snakeHead;
-                    ctx.beginPath();
-                    ctx.arc(segment.x + config.gridSize/2, segment.y + config.gridSize/2, 
-                            config.gridSize/2 - 2, 0, Math.PI*2);
-                    ctx.fill();
-                    // 添加蛇眼
-                    ctx.fillStyle = 'white';
-                    ctx.beginPath();
-                    ctx.arc(segment.x + config.gridSize/3, segment.y + config.gridSize/3, 2, 0, Math.PI*2);
-                    ctx.arc(segment.x + 2*config.gridSize/3, segment.y + config.gridSize/3, 2, 0, Math.PI*2);
-                    ctx.fill();
-                } else {
-                    ctx.fillStyle = config.colors.snakeBody;
-                    ctx.fillRect(segment.x, segment.y, config.gridSize-2, config.gridSize-2);
+                ctx.fillStyle = index === 0 ? config.colors.snakeHead : config.colors.snakeBody;
+                ctx.beginPath();
+                ctx.roundRect(segment.x, segment.y, 18, 18, index === 0 ? 5 : 3);
+                ctx.fill();
+                
+                // 添加身体连接处的阴影
+                if(index > 0) {
+                    ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(segment.x, segment.y, 18, 18);
                 }
             });
         }
 
+        // 绘制食物（带旋转效果）
         function drawFood() {
-            ctx.fillStyle = config.colors.food;
-            ctx.beginPath();
-            ctx.roundRect(food.x, food.y, config.gridSize-2, config.gridSize-2, 5);
-            ctx.fill();
-        }
+            if(currentFood) {
+                ctx.save();
+                ctx.translate(currentFood.x + 10, currentFood.y + 10);
+                ctx.rotate(Date.now()/500);
+                ctx.fillStyle = config.colors.food;
+                ctx.beginPath();
+                ctx.arc(0, 0, 8, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
 
-        function drawBomb() {
-            if(!bomb || !bomb.active) return;
-            ctx.fillStyle = config.colors.bomb;
-            ctx.font = '20px Arial';
-            ctx.fillText('☠', bomb.x + 2, bomb.y + 18);
+            if(specialFood) {
+                ctx.fillStyle = `rgba(241, 196, 15, ${specialFood.alpha})`;
+                ctx.beginPath();
+                ctx.arc(specialFood.x + 10, specialFood.y + 10, 10, 0, Math.PI*2);
+                ctx.fill();
+                specialFood.alpha = Math.abs(Math.sin(Date.now()/300));
+            }
         }
 
         function update() {
-            const head = {...snake[0]};
+            const head = { ...snake[0] };
             switch(direction) {
-                case 'up': head.y -= config.gridSize; break;
-                case 'down': head.y += config.gridSize; break;
-                case 'left': head.x -= config.gridSize; break;
-                case 'right': head.x += config.gridSize; break;
+                case 'up': head.y -= 20; break;
+                case 'down': head.y += 20; break;
+                case 'left': head.x -= 20; break;
+                case 'right': head.x += 20; break;
             }
 
             // 穿墙处理
             head.x = (head.x + canvas.width) % canvas.width;
             head.y = (head.y + canvas.height) % canvas.height;
 
-            // 碰撞检测
-            if(checkCollision(head, food)) {
-                score += 100;
+            // 食物检测
+            const checkFood = (food) => {
+                return Math.abs(head.x - food.x) < 20 && Math.abs(head.y - food.y) < 20;
+            };
+
+            if(checkFood(currentFood)) {
+                score += currentFood.type === 'special' ? 300 : 100;
+                foodCount++;
+                document.getElementById('foodCount').textContent = foodCount;
+                snake.unshift(head);
+                currentFood = generateFood();
+                if(Math.random() > 0.8) specialFood = generateSpecialFood();
+            } else if(specialFood && checkFood(specialFood)) {
+                score += 300;
                 foodCount++;
                 snake.unshift(head);
-                food = spawnFood();
-                if(Math.random() < config.bombSpawnRate) bomb = spawnBomb();
+                specialFood = null;
             } else {
                 snake = [head, ...snake.slice(0, -1)];
             }
 
-            // 炸弹检测
-            if(bomb && bomb.active && checkCollision(head, bomb)) {
-                gameOver();
-                return;
-            }
+            // 更新界面
+            document.getElementById('score').textContent = score;
+            document.getElementById('score').style.color = 
+                score > 1000 ? '#f1c40f' : '#e74c3c';
 
             // 自碰检测
-            if(snake.slice(1).some(segment => checkCollision(head, segment))) {
-                gameOver();
+            if(snake.slice(1).some(s => s.x === head.x && s.y === head.y)) {
+                alert(`游戏结束！得分：${score}`);
+                resetGame();
             }
-
-            updateStats();
-        }
-
-        function checkCollision(a, b) {
-            return a.x === b.x && a.y === b.y;
-        }
-
-        function updateStats() {
-            document.getElementById('score').textContent = score;
-            document.getElementById('foodCount').textContent = foodCount;
-            document.getElementById('bombCount').textContent = bombCount;
-            document.getElementById('snakeLength').textContent = snake.length;
-        }
-
-        function gameOver() {
-            alert(`游戏结束！得分：${score}`);
-            init();
         }
 
         function draw() {
@@ -237,31 +243,50 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             drawSnake();
             drawFood();
-            drawBomb();
         }
 
-        // 控制
+        function resetGame() {
+            snake = [{ x: canvas.width/2, y: canvas.height/2 }];
+            direction = 'right';
+            score = 0;
+            foodCount = 0;
+            currentFood = generateFood();
+            specialFood = null;
+            document.getElementById('foodCount').textContent = '0';
+            document.getElementById('score').style.color = '#e74c3c';
+        }
+
+        // 速度控制
+        function changeSpeed(factor) {
+            clearInterval(gameLoop);
+            speed *= factor;
+            gameLoop = setInterval(() => {
+                update();
+                draw();
+            }, speed);
+        }
+
+        // 初始化游戏循环
+        gameLoop = setInterval(() => {
+            update();
+            draw();
+        }, speed);
+
+        // 键盘控制
         document.addEventListener('keydown', (e) => {
             const dirMap = {
                 ArrowUp: 'up', ArrowDown: 'down',
                 ArrowLeft: 'left', ArrowRight: 'right'
             };
-            if(dirMap[e.key] && direction !== oppositeDir(dirMap[e.key])) {
+            if (dirMap[e.key] && direction !== oppositeDir(dirMap[e.key])) {
                 direction = dirMap[e.key];
             }
         });
 
         function oppositeDir(newDir) {
-            const dirPairs = {up: 'down', down: 'up', left: 'right', right: 'left'};
+            const dirPairs = { up: 'down', down: 'up', left: 'right', right: 'left' };
             return dirPairs[newDir];
         }
-
-        // 初始化游戏
-        init();
-        setInterval(() => {
-            update();
-            draw();
-        }, 100);
     </script>
 </body>
 </html>
