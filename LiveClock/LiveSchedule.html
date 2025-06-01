@@ -53,6 +53,7 @@
       transition: all 0.3s ease;
       box-sizing: border-box;
       position: relative;
+      overflow: hidden;
     }
     .item-header {
       display: flex;
@@ -80,16 +81,22 @@
       height: 100%;
       width: 0;
       background: linear-gradient(270deg, orange, #ffa500, orange);
-      background-size: 400% 100%;
-      animation: slide 2s linear infinite;
+      background-size: 200% 100%;
+      animation: slide 1s linear infinite;
     }
     @keyframes slide {
-      0% { background-position: 0% 0; }
-      100% { background-position: 100% 0; }
+      0% { background-position: 200% 0; }
+      100% { background-position: 0% 0; }
     }
     .item.active {
       background: rgba(255, 190, 80, 0.6);
       font-weight: bold;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,190,80, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255,190,80, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,190,80, 0); }
     }
     .item.done {
       background: rgba(180, 255, 180, 0.25);
@@ -110,6 +117,23 @@
       font-size: 14px;
       cursor: pointer;
     }
+    .remaining-time {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #c00;
+      font-weight: bold;
+    }
+    .free-note {
+      margin-top: 20px;
+      font-size: 14px;
+      width: 100%;
+      border: none;
+      outline: none;
+      border-bottom: 1px dashed #aaa;
+      background: transparent;
+      padding: 6px;
+      resize: none;
+    }
   </style>
 </head>
 <body>
@@ -123,6 +147,7 @@
         <span class="check-btn" onclick="toggleDone(this)">✔️</span>
       </div>
       <div class="progress"><div class="bar"></div></div>
+      <div class="remaining-time"></div>
     </div>
 
     <div class="item" data-start="21:00" data-end="22:00">
@@ -131,6 +156,7 @@
         <span class="check-btn" onclick="toggleDone(this)">✔️</span>
       </div>
       <div class="progress"><div class="bar"></div></div>
+      <div class="remaining-time"></div>
     </div>
 
     <div class="item" data-start="22:00" data-end="22:30">
@@ -139,12 +165,15 @@
         <span class="check-btn" onclick="toggleDone(this)">✔️</span>
       </div>
       <div class="progress"><div class="bar"></div></div>
+      <div class="remaining-time"></div>
     </div>
 
     <div class="tracker">
       今日已学习 <span id="study-time">0 分 0 秒</span><br>
       <button onclick="toggleTimer(this)">▶️ 开始计时</button>
     </div>
+
+    <textarea class="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
   </div>
 
   <script>
@@ -166,14 +195,18 @@
         const start = h1 * 60 + m1;
         const end = h2 * 60 + m2;
         const bar = item.querySelector('.bar');
+        const rem = item.querySelector('.remaining-time');
 
         if (nowMins >= start && nowMins < end) {
           item.classList.add("active");
           const progress = ((nowMins - start) / (end - start)) * 100;
           bar.style.width = progress + '%';
+          const minsLeft = end - nowMins;
+          rem.textContent = `剩余 ${minsLeft} 分钟`;
         } else {
           item.classList.remove("active");
           bar.style.width = '0%';
+          rem.textContent = '';
         }
       });
     }
