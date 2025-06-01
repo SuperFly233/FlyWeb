@@ -103,7 +103,7 @@
       });
     }
 
-    fetch("tasks.json")
+    fetch("https://raw.githubusercontent.com/SuperFly233/LiveClock/main/tasks.json")
       .then(res => res.json())
       .then(data => {
         const dateText = new Date(data.date).toLocaleDateString('zh-CN', {
