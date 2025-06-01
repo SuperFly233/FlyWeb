@@ -2,35 +2,33 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>实时时钟</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <title>时钟</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap" rel="stylesheet">
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-color: rgb(254, 245, 202); /* 融入主界面底色 */
+      width: 218px;
+      height: 57px;
+      background-color: rgb(254, 245, 202); /* 匹配你的设计 */
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      font-family: 'Orbitron', sans-serif;
     }
 
     #clock {
-      font-size: 60px;
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
       color: #333;
-      padding: 20px 40px;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      border: 2px solid rgba(0, 0, 0, 0.1);
-      animation: glow 2s infinite ease-in-out;
+      letter-spacing: 2px;
+      animation: glow 2s ease-in-out infinite;
     }
 
     @keyframes glow {
-      0% { box-shadow: 0 0 8px rgba(255, 200, 0, 0.3); }
-      50% { box-shadow: 0 0 20px rgba(255, 180, 0, 0.6); }
-      100% { box-shadow: 0 0 8px rgba(255, 200, 0, 0.3); }
+      0%   { text-shadow: 0 0 4px rgba(255, 200, 0, 0.3); }
+      50%  { text-shadow: 0 0 8px rgba(255, 180, 0, 0.6); }
+      100% { text-shadow: 0 0 4px rgba(255, 200, 0, 0.3); }
     }
   </style>
 </head>
@@ -46,7 +44,7 @@
       document.getElementById('clock').textContent = `${h}:${m}:${s}`;
     }
     setInterval(updateClock, 1000);
-    updateClock(); // 初始运行
+    updateClock();
   </script>
 </body>
 </html>
