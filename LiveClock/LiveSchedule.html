@@ -70,12 +70,18 @@
       border-radius: 4px;
       overflow: hidden;
       margin-top: 6px;
+      position: relative;
     }
     .item .bar {
       height: 100%;
       width: 0;
-      background-color: orange;
-      transition: width 1s linear;
+      background: linear-gradient(270deg, orange, #ffa500, orange);
+      background-size: 400% 100%;
+      animation: slide 2s linear infinite;
+    }
+    @keyframes slide {
+      0% { background-position: 0% 0; }
+      100% { background-position: 100% 0; }
     }
     .item.active {
       background: rgba(255, 190, 80, 0.6);
@@ -93,10 +99,11 @@
     }
     .tracker button {
       margin-top: 5px;
-      padding: 4px 8px;
+      padding: 6px 12px;
       border: none;
       border-radius: 6px;
       background-color: #ffbf47;
+      font-size: 14px;
       cursor: pointer;
     }
   </style>
@@ -131,7 +138,7 @@
     </div>
 
     <div class="tracker">
-      今日已学习 <span id="study-min">0</span> 分钟<br>
+      今日已学习 <span id="study-time">0 分 0 秒</span><br>
       <button onclick="toggleTimer(this)">▶️ 开始计时</button>
     </div>
   </div>
@@ -170,9 +177,8 @@
     highlightAndProgress();
     setInterval(highlightAndProgress, 60000);
 
-    // 手动学习计时器
     let timer = null;
-    let studyMinutes = 0;
+    let studySeconds = 0;
     function toggleTimer(btn) {
       if (timer) {
         clearInterval(timer);
@@ -180,9 +186,11 @@
         btn.textContent = "▶️ 开始计时";
       } else {
         timer = setInterval(() => {
-          studyMinutes++;
-          document.getElementById('study-min').textContent = studyMinutes;
-        }, 60000);
+          studySeconds++;
+          const mins = Math.floor(studySeconds / 60);
+          const secs = studySeconds % 60;
+          document.getElementById('study-time').textContent = `${mins} 分 ${secs} 秒`;
+        }, 1000);
         btn.textContent = "⏸️ 暂停计时";
       }
     }
