@@ -5,7 +5,7 @@
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
       padding: 0;
       width: 332px;
@@ -13,13 +13,13 @@
       background-color: rgb(254, 245, 202);
       font-family: 'Noto Sans SC', sans-serif;
       color: #333;
-      box-sizing: border-box;
       overflow: hidden;
     }
 
     .container {
       padding: 20px 16px;
       height: 100%;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -58,31 +58,18 @@
 <body>
   <div class="container">
     <h1>— 时间表 —</h1>
-    <div class="date" id="date"></div>
-
-    <div id="schedule">
-      <div class="item" data-start="20:00" data-end="21:00">20:00 - 21:00 <span>阅读 · 作文</span></div>
-      <div class="item" data-start="21:00" data-end="22:00">21:00 - 22:00 <span>作文 · 翻译</span></div>
-      <div class="item" data-start="22:00" data-end="22:30">22:00 - 22:30 <span>总结复盘</span></div>
-    </div>
+    <div class="date" id="date">载入中...</div>
+    <div id="schedule"></div>
   </div>
 
   <script>
-    // 自动填入今日日期
-    const dateObj = new Date();
-    const options = { year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' };
-    document.getElementById('date').textContent = dateObj.toLocaleDateString('zh-CN', options);
-
-    // 自动高亮当前时间段
+    // 自动高亮逻辑
     function highlightCurrent() {
       const now = new Date();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const items = document.querySelectorAll('.item');
-      items.forEach(item => {
-        const [h1, m1] = item.dataset.start.split(':').map(Number);
-        const [h2, m2] = item.dataset.end.split(':').map(Number);
-        const start = h1 * 60 + m1;
-        const end = h2 * 60 + m2;
+      document.querySelectorAll('.item').forEach(item => {
+        const start = item.dataset.startMins * 1;
+        const end = item.dataset.endMins * 1;
         if (currentMinutes >= start && currentMinutes < end) {
           item.classList.add('active');
         } else {
@@ -91,8 +78,32 @@
       });
     }
 
-    highlightCurrent();
-    setInterval(highlightCurrent, 60000); // 每分钟刷新一次
+    // 加载 JSON 时间表数据
+    fetch("tasks.json")
+      .then(res => res.json())
+      .then(data => {
+        const dateText = new Date(data.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' });
+        document.getElementById('date').textContent = dateText;
+
+        const schedule = document.getElementById('schedule');
+        data.tasks.forEach(task => {
+          const div = document.createElement("div");
+          const startMins = parseInt(task.start.split(":")[0]) * 60 + parseInt(task.start.split(":")[1]);
+          const endMins = parseInt(task.end.split(":")[0]) * 60 + parseInt(task.end.split(":")[1]);
+          div.className = "item";
+          div.setAttribute("data-startMins", startMins);
+          div.setAttribute("data-endMins", endMins);
+          div.innerHTML = `${task.start} - ${task.end} <span>${task.content}</span>`;
+          schedule.appendChild(div);
+        });
+
+        highlightCurrent();
+        setInterval(highlightCurrent, 60000);
+      })
+      .catch(err => {
+        document.getElementById('date').textContent = "加载失败";
+        console.error("无法加载任务数据:", err);
+      });
   </script>
 </body>
 </html>
