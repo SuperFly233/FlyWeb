@@ -128,5 +128,10 @@
       })
       .catch(err => {
         const container = document.getElementById('schedule');
-        container.innerHTML = '<div class="error">⚠️ 无法加载任务数据<br>请检查 tasks.json 是否存在</div>';
+        container.innerHTML = '<div class="error">⚠️ 无法加载任务数据<br>请检查 tasks.json 是否存在或路径是否正确</div>';
         document.getElementById('date').textContent = "加载失败";
+        console.error("任务加载失败：", err);
+      });
+  </script>
+</body>
+</html>
