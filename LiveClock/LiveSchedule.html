@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>时间表</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 332px;
+      height: 763px;
+      background-color: rgb(254, 245, 202);
+      font-family: 'Noto Sans SC', sans-serif;
+      color: #333;
+      overflow: hidden;
+    }
+
+    .container {
+      padding: 20px 16px;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0;
+      letter-spacing: 2px;
+    }
+
+    .date {
+      margin: 10px 0 18px;
+      font-size: 15px;
+      color: #fff;
+      background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
+      padding: 4px 12px;
+      border-radius: 16px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .item {
+      width: 100%;
+      font-size: 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.45);
+      border: 1px solid rgba(255, 160, 0, 0.15);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: all 0.4s ease;
+    }
+
+    .item.active {
+      background: rgba(255, 190, 80, 0.6);
+      color: #000;
+      font-weight: bold;
+      animation: pulse 1.6s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 0 5px rgba(255, 150, 50, 0.2); }
+      50% { transform: scale(1.02); box-shadow: 0 0 12px rgba(255, 180, 0, 0.4); }
+      100% { transform: scale(1); box-shadow: 0 0 5px rgba(255, 150, 50, 0.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>— 时间表 —</h1>
+    <div class="date" id="date">载入中...</div>
+
+    <!-- ✅ 每天只改这几行 -->
+    <div class="item" data-start="20:00" data-end="21:00">20:00 - 21:00 <span>阅读 · 作文</span></div>
+    <div class="item" data-start="21:00" data-end="22:00">21:00 - 22:00 <span>作文 · 翻译</span></div>
+    <div class="item" data-start="22:00" data-end="22:30">22:00 - 22:30 <span>ChatGPT总结</span></div>
+    <!-- ✅ 只改上面，其他都不用动 -->
+  </div>
+
+  <script>
+    // 日期显示
+    const date = new Date();
+    const text = date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short' });
+    document.getElementById('date').textContent = text;
+
+    // 自动高亮逻辑
+    function highlightCurrent() {
+      const now = new Date();
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      document.querySelectorAll('.item').forEach(el => {
+        const [h1, m1] = el.dataset.start.split(":").map(Number);
+        const [h2, m2] = el.dataset.end.split(":").map(Number);
+        const start = h1 * 60 + m1;
+        const end = h2 * 60 + m2;
+        if (nowMins >= start && nowMins < end) {
+          el.classList.add("active");
+        } else {
+          el.classList.remove("active");
+        }
+      });
+    }
+
+    highlightCurrent();
+    setInterval(highlightCurrent, 60000);
+  </script>
+</body>
+</html>
