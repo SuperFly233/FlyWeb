@@ -11,7 +11,7 @@
       width: 332px;
       height: 763px;
       background-color: rgb(254, 245, 202);
-      font-family: 'Noto Sans SC', sans-serif;
+      font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
       color: #333;
       overflow: hidden;
     }
@@ -133,6 +133,7 @@
       background: transparent;
       padding: 6px;
       resize: none;
+      font-family: 'Microsoft YaHei', sans-serif;
     }
   </style>
 </head>
@@ -186,14 +187,30 @@
       el.parentElement.parentElement.classList.toggle("done");
     }
 
+    function formatRemaining(seconds) {
+      if (seconds >= 3600) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      } else {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }
+    }
+
     function highlightAndProgress() {
       const now = new Date();
       const nowMins = now.getHours() * 60 + now.getMinutes();
+      const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
       document.querySelectorAll('.item').forEach(item => {
         const [h1, m1] = item.dataset.start.split(":").map(Number);
         const [h2, m2] = item.dataset.end.split(":").map(Number);
         const start = h1 * 60 + m1;
         const end = h2 * 60 + m2;
+        const startSecs = h1 * 3600 + m1 * 60;
+        const endSecs = h2 * 3600 + m2 * 60;
         const bar = item.querySelector('.bar');
         const rem = item.querySelector('.remaining-time');
 
@@ -201,8 +218,8 @@
           item.classList.add("active");
           const progress = ((nowMins - start) / (end - start)) * 100;
           bar.style.width = progress + '%';
-          const minsLeft = end - nowMins;
-          rem.textContent = `剩余 ${minsLeft} 分钟`;
+          const secsLeft = endSecs - nowSecs;
+          rem.textContent = `剩余 ${formatRemaining(secsLeft)}`;
         } else {
           item.classList.remove("active");
           bar.style.width = '0%';
@@ -212,7 +229,7 @@
     }
 
     highlightAndProgress();
-    setInterval(highlightAndProgress, 60000);
+    setInterval(highlightAndProgress, 1000);
 
     let timer = null;
     let studySeconds = 0;
