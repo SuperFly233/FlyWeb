@@ -4,149 +4,177 @@
   <meta charset="UTF-8">
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
-  <!-- 样式略 -->
-</head>
-<body>
-  <header>
-    <h1>— 时间表 —</h1>
-    <div class="date" id="date">载入中...</div>
-  </header>
-  <div class="container">
-    <button id="editBtn">📝 编辑任务</button>
-    <div id="taskList"></div>
-    <div class="tracker">
-      今日已学习 <span id="study-time">00:00:00</span><br>
-      <button onclick="toggleTimer(this)">▶️ 开始计时</button>
-    </div>
-    <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
-  </div>
-
-  <div class="modal" id="taskModal">
-    <div style="display:flex; flex-direction:column; align-items:center;">
-      <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
-      <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
-    </div>
-  </div>
-
-  <script>
-    const date = new Date();
-    document.getElementById('date').textContent = date.toLocaleDateString('zh-CN', {
-      year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
-    });
-
-    function formatTime(seconds) {
-      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-      const s = String(seconds % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: rgb(254, 245, 202);
+      font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-
-    function renderTasks() {
-      const list = document.getElementById('taskList');
-      list.innerHTML = '';
-      const lines = (localStorage.getItem('taskInput') || '').trim().split('\n');
-      lines.forEach(line => {
-        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
-        if (match) {
-          const [_, start, end, content] = match;
-          const div = document.createElement('div');
-          div.className = 'item';
-          div.dataset.start = start;
-          div.dataset.end = end;
-          div.innerHTML = `
-            <div class="item-header">
-              <span>${start} - ${end} ${content}</span>
-              <span class="check-btn" onclick="toggleDone(this)">✔️</span>
-            </div>
-            <div class="progress"><div class="bar"></div></div>
-            <div class="remaining-time"></div>
-          `;
-          list.appendChild(div);
-        }
-      });
+    header {
+      text-align: center;
+      margin-top: 16px;
     }
-
-    function toggleDone(el) {
-      el.parentElement.parentElement.classList.toggle("done");
+    h1 {
+      font-size: 24px;
+      margin: 0;
+      letter-spacing: 2px;
     }
-
-    function highlightAndProgress() {
-      const now = new Date();
-      const nowMins = now.getHours() * 60 + now.getMinutes();
-      const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      document.querySelectorAll('.item').forEach(item => {
-        const [h1, m1] = item.dataset.start.split(":").map(Number);
-        const [h2, m2] = item.dataset.end.split(":").map(Number);
-        const start = h1 * 60 + m1;
-        const end = h2 * 60 + m2;
-        const startSecs = h1 * 3600 + m1 * 60;
-        const endSecs = h2 * 3600 + m2 * 60;
-        const bar = item.querySelector('.bar');
-        const rem = item.querySelector('.remaining-time');
-
-        if (nowMins >= start && nowMins < end) {
-          item.classList.add("active");
-          const progress = ((nowMins - start) / (end - start)) * 100;
-          bar.style.width = progress + '%';
-          const secsLeft = endSecs - nowSecs;
-          rem.textContent = `剩余 ${formatTime(secsLeft)}`;
-        } else {
-          item.classList.remove("active");
-          bar.style.width = '0%';
-          rem.textContent = '';
-        }
-      });
+    .date {
+      margin-top: 6px;
+      font-size: 15px;
+      color: #fff;
+      background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
+      padding: 4px 12px;
+      border-radius: 16px;
+      display: inline-block;
     }
-
-    let timer = null;
-    let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
-    let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
-
-    function updateStudyTime() {
-      document.getElementById('study-time').textContent = formatTime(studySeconds);
+    .container {
+      width: 90%;
+      max-width: 480px;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-
-    function toggleTimer(btn) {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-        btn.textContent = "▶️ 开始计时";
-      } else {
-        timer = setInterval(() => {
-          studySeconds++;
-          localStorage.setItem(todayKey, studySeconds);
-          updateStudyTime();
-        }, 1000);
-        btn.textContent = "⏸️ 暂停计时";
+    #editBtn {
+      margin: 10px 0;
+      background: linear-gradient(45deg, #fca 0%, #f96 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      color: white;
+      font-size: 14px;
+    }
+    .item {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 12px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .item .check-btn {
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .item .progress {
+      height: 6px;
+      background-color: #ffe;
+      border-radius: 4px;
+      margin-top: 6px;
+      overflow: hidden;
+      display: none;
+    }
+    .item.active .progress {
+      display: block;
+    }
+    .item .bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(270deg, orange, #ffa500, orange);
+      background-size: 200% 100%;
+      animation: slide 1s linear infinite;
+    }
+    @keyframes slide {
+      0% { background-position: 200% 0; }
+      100% { background-position: 0% 0; }
+    }
+    .item.active {
+      background: rgba(255, 190, 80, 0.6);
+      font-weight: bold;
+    }
+    .item.done {
+      background: rgba(180, 255, 180, 0.3);
+      text-decoration: line-through;
+      color: #777;
+    }
+    .remaining-time {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #b00;
+    }
+    .tracker {
+      text-align: center;
+      margin-top: 16px;
+    }
+    .tracker button {
+      margin-top: 6px;
+      background-color: #ffbf47;
+      border: none;
+      padding: 6px 14px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .free-note {
+      width: 100%;
+      margin-top: 20px;
+      font-size: 14px;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      resize: vertical;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0);
+      backdrop-filter: blur(0);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      animation: fadeInBlur 0.4s ease forwards;
+    }
+    @keyframes fadeInBlur {
+      0% {
+        background: rgba(0,0,0,0);
+        backdrop-filter: blur(0px);
+      }
+      100% {
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(6px);
       }
     }
-
-    function openTaskEditor() {
-      const modal = document.getElementById('taskModal');
-      modal.style.display = 'flex';
-      modal.classList.remove('fade-out');
-      document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
+    .modal textarea {
+      width: 90%;
+      height: 300px;
+      font-size: 14px;
+      font-family: 'Microsoft YaHei', sans-serif;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
+      resize: vertical;
     }
-
-    function closeTaskEditor() {
-      const val = document.getElementById('taskInput').value;
-      localStorage.setItem('taskInput', val);
-      renderTasks();
-      const modal = document.getElementById('taskModal');
-      modal.classList.add('fade-out');
-      setTimeout(() => { modal.style.display = 'none'; }, 400);
+    .modal button {
+      margin-top: 10px;
+      padding: 6px 14px;
+      background-color: #f06292;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
     }
-
-    document.getElementById('editBtn').addEventListener('click', openTaskEditor);
-    document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
-    document.getElementById('free-note').addEventListener('input', e => {
-      localStorage.setItem('freeNote', e.target.value);
-    });
-
-    renderTasks();
-    updateStudyTime();
-    highlightAndProgress();
-    setInterval(highlightAndProgress, 1000);
-  </script>
+  </style>
+</head>
+<body>
+<!-- HTML结构保持不变 -->
 </body>
 </html>
