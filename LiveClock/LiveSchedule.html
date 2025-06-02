@@ -38,16 +38,47 @@
       border-radius: 16px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
-    .task-input {
+    #editBtn {
+      margin-bottom: 12px;
+      background: #ff9f40;
+      border: none;
+      border-radius: 8px;
+      padding: 4px 12px;
+      cursor: pointer;
+      color: white;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal textarea {
+      width: 90%;
+      height: 300px;
       font-size: 14px;
       font-family: 'Microsoft YaHei', sans-serif;
-      margin: 10px 0;
-      border: 1px dashed #ccc;
-      border-radius: 6px;
-      background: rgba(255,255,255,0.6);
-      padding: 8px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
       resize: vertical;
+    }
+    .modal button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background: #f06292;
+      color: white;
+      cursor: pointer;
     }
     .item {
       width: 92%;
@@ -152,8 +183,7 @@
   <div class="container">
     <h1>— 时间表 —</h1>
     <div class="date" id="date">载入中...</div>
-
-    <textarea class="task-input" id="taskInput" rows="3" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
+    <button id="editBtn">📝 编辑任务</button>
     <div id="taskList"></div>
 
     <div class="tracker">
@@ -162,6 +192,13 @@
     </div>
 
     <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
+  </div>
+
+  <div class="modal" id="taskModal">
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
+      <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
+    </div>
   </div>
 
   <script>
@@ -180,7 +217,7 @@
     function renderTasks() {
       const list = document.getElementById('taskList');
       list.innerHTML = '';
-      const lines = document.getElementById('taskInput').value.trim().split('\n');
+      const lines = (localStorage.getItem('taskInput') || '').trim().split('\n');
       lines.forEach(line => {
         const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
         if (match) {
@@ -200,7 +237,6 @@
           list.appendChild(div);
         }
       });
-      localStorage.setItem('taskInput', document.getElementById('taskInput').value);
     }
 
     function toggleDone(el) {
@@ -236,10 +272,13 @@
     }
 
     let timer = null;
-    let studySeconds = parseInt(localStorage.getItem('studySeconds') || '0');
+    let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
+    let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
+
     function updateStudyTime() {
       document.getElementById('study-time').textContent = formatTime(studySeconds);
     }
+
     function toggleTimer(btn) {
       if (timer) {
         clearInterval(timer);
@@ -248,20 +287,32 @@
       } else {
         timer = setInterval(() => {
           studySeconds++;
-          localStorage.setItem('studySeconds', studySeconds);
+          localStorage.setItem(todayKey, studySeconds);
           updateStudyTime();
         }, 1000);
         btn.textContent = "⏸️ 暂停计时";
       }
     }
 
-    document.getElementById('taskInput').addEventListener('input', renderTasks);
+    function openTaskEditor() {
+      document.getElementById('taskModal').style.display = 'flex';
+      document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
+    }
+
+    function closeTaskEditor() {
+      const val = document.getElementById('taskInput').value;
+      localStorage.setItem('taskInput', val);
+      renderTasks();
+      document.getElementById('taskModal').style.display = 'none';
+    }
+
+    document.getElementById('editBtn').addEventListener('click', openTaskEditor);
+
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
     document.getElementById('free-note').addEventListener('input', e => {
       localStorage.setItem('freeNote', e.target.value);
     });
 
-    document.getElementById('taskInput').value = localStorage.getItem('taskInput') || `20:00 - 21:00 阅读 · 作文\n21:00 - 22:00 作文 · 翻译\n22:00 - 22:30 ChatGPT总结`;
     renderTasks();
     updateStudyTime();
     highlightAndProgress();
