@@ -135,6 +135,15 @@
       resize: none;
       font-family: 'Microsoft YaHei', sans-serif;
     }
+    .editable-area {
+      margin-top: 14px;
+      width: 100%;
+      padding: 6px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 8px;
+      border: 1px dashed #ccc;
+      font-family: 'Microsoft YaHei', sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -142,39 +151,18 @@
     <h1>— 时间表 —</h1>
     <div class="date" id="date">载入中...</div>
 
-    <div class="item" data-start="20:00" data-end="21:00">
-      <div class="item-header">
-        <span>20:00 - 21:00 阅读 · 作文</span>
-        <span class="check-btn" onclick="toggleDone(this)">✔️</span>
-      </div>
-      <div class="progress"><div class="bar"></div></div>
-      <div class="remaining-time"></div>
-    </div>
+    <div id="editable-tasks" contenteditable="true" class="editable-area">20:00 - 21:00 阅读 · 作文
+21:00 - 22:00 作文 · 翻译
+22:00 - 22:30 ChatGPT总结</div>
 
-    <div class="item" data-start="21:00" data-end="21:50">
-      <div class="item-header">
-        <span>21:00 - 21:50 作文 · 翻译</span>
-        <span class="check-btn" onclick="toggleDone(this)">✔️</span>
-      </div>
-      <div class="progress"><div class="bar"></div></div>
-      <div class="remaining-time"></div>
-    </div>
-
-    <div class="item" data-start="21:50" data-end="23:30">
-      <div class="item-header">
-        <span>21:50 -23:30 玩玩</span>
-        <span class="check-btn" onclick="toggleDone(this)">✔️</span>
-      </div>
-      <div class="progress"><div class="bar"></div></div>
-      <div class="remaining-time"></div>
-    </div>
+    <div id="items-container"></div>
 
     <div class="tracker">
-      今日已学习 <span id="study-time">0 分 0 秒</span><br>
+      今日已学习 <span id="study-time">00:00</span><br>
       <button onclick="toggleTimer(this)">▶️ 开始计时</button>
     </div>
 
-    <textarea class="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
+    <textarea class="free-note" rows="3" id="free-note" placeholder="在这里写点什么...（可随意编辑）"></textarea>
   </div>
 
   <script>
@@ -183,21 +171,45 @@
       year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
     });
 
-    function toggleDone(el) {
-      el.parentElement.parentElement.classList.toggle("done");
+    function formatTime(totalSeconds) {
+      const h = Math.floor(totalSeconds / 3600);
+      const m = Math.floor((totalSeconds % 3600) / 60);
+      const s = totalSeconds % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
 
     function formatRemaining(seconds) {
-      if (seconds >= 3600) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        const s = seconds % 60;
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      } else {
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      }
+      return formatTime(seconds);
+    }
+
+    function renderItems() {
+      const container = document.getElementById('items-container');
+      container.innerHTML = '';
+      const lines = document.getElementById('editable-tasks').innerText.trim().split('\n');
+      lines.forEach(line => {
+        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s*(.*)/);
+        if (match) {
+          const [_, start, end, title] = match;
+          const item = document.createElement('div');
+          item.className = 'item';
+          item.dataset.start = start;
+          item.dataset.end = end;
+          item.innerHTML = `
+            <div class="item-header">
+              <span>${start} - ${end} ${title}</span>
+              <span class="check-btn" onclick="toggleDone(this)">✔️</span>
+            </div>
+            <div class="progress"><div class="bar"></div></div>
+            <div class="remaining-time"></div>
+          `;
+          container.appendChild(item);
+        }
+      });
+      localStorage.setItem('tasks', document.getElementById('editable-tasks').innerText.trim());
+    }
+
+    function toggleDone(el) {
+      el.parentElement.parentElement.classList.toggle("done");
     }
 
     function highlightAndProgress() {
@@ -228,11 +240,11 @@
       });
     }
 
-    highlightAndProgress();
-    setInterval(highlightAndProgress, 1000);
-
     let timer = null;
-    let studySeconds = 0;
+    let studySeconds = parseInt(localStorage.getItem('studySeconds') || '0');
+    function updateStudyTime() {
+      document.getElementById('study-time').textContent = formatTime(studySeconds);
+    }
     function toggleTimer(btn) {
       if (timer) {
         clearInterval(timer);
@@ -241,13 +253,23 @@
       } else {
         timer = setInterval(() => {
           studySeconds++;
-          const mins = Math.floor(studySeconds / 60);
-          const secs = studySeconds % 60;
-          document.getElementById('study-time').textContent = `${mins} 分 ${secs} 秒`;
+          updateStudyTime();
+          localStorage.setItem('studySeconds', studySeconds);
         }, 1000);
         btn.textContent = "⏸️ 暂停计时";
       }
     }
+
+    document.getElementById('editable-tasks').addEventListener('input', renderItems);
+    document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
+    document.getElementById('free-note').addEventListener('input', e => {
+      localStorage.setItem('freeNote', e.target.value);
+    });
+
+    renderItems();
+    highlightAndProgress();
+    updateStudyTime();
+    setInterval(highlightAndProgress, 1000);
   </script>
 </body>
 </html>
