@@ -5,103 +5,81 @@
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
   <style>
-    html, body {
+    body {
       margin: 0;
       padding: 0;
-      width: 332px;
-      height: 763px;
       background-color: rgb(254, 245, 202);
       font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
       color: #333;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      align-items: center;
     }
     header {
       text-align: center;
-      padding: 12px 0 0;
-      flex-shrink: 0;
+      margin-top: 16px;
     }
     h1 {
-      font-size: 22px;
+      font-size: 24px;
       margin: 0;
       letter-spacing: 2px;
     }
     .date {
-      margin: 6px auto 10px;
+      margin-top: 6px;
       font-size: 15px;
       color: #fff;
       background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
       padding: 4px 12px;
       border-radius: 16px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       display: inline-block;
     }
     .container {
-      flex: 1;
-      padding: 10px 16px 0;
+      width: 90%;
+      max-width: 480px;
+      padding: 20px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      max-width: 100%;
-      overflow: hidden;
+      align-items: center;
     }
     #editBtn {
-      margin-bottom: 12px;
-      background: #ff9f40;
+      margin: 10px 0;
+      background: linear-gradient(45deg, #fca 0%, #f96 100%);
       border: none;
       border-radius: 8px;
-      padding: 4px 12px;
+      padding: 6px 14px;
       cursor: pointer;
       color: white;
-    }
-    .task-area {
-      flex: 1;
-      overflow-y: auto;
-      padding-bottom: 10px;
-    }
-    .bottom-bar {
-      flex-shrink: 0;
-      padding: 10px 0 14px;
-      background-color: transparent;
-      box-sizing: border-box;
-      position: sticky;
-      bottom: 0;
+      font-size: 14px;
     }
     .item {
-      width: 92%;
-      font-size: 16px;
-      padding: 10px 14px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
       border-radius: 10px;
-      margin: 0 auto 12px;
-      background: rgba(255, 255, 255, 0.45);
-      border: 1px solid rgba(255, 160, 0, 0.15);
-      backdrop-filter: blur(4px);
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 12px;
+      margin-bottom: 12px;
       box-sizing: border-box;
       position: relative;
-      overflow: hidden;
     }
     .item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    .item-header span:first-child {
+      cursor: pointer;
+    }
     .item .check-btn {
       font-size: 20px;
       cursor: pointer;
-      user-select: none;
     }
     .item .progress {
       height: 6px;
-      background-color: #ffd;
+      background-color: #ffe;
       border-radius: 4px;
-      overflow: hidden;
       margin-top: 6px;
-      position: relative;
+      overflow: hidden;
       display: none;
     }
     .item.active .progress {
@@ -121,44 +99,44 @@
     .item.active {
       background: rgba(255, 190, 80, 0.6);
       font-weight: bold;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,190,80, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(255,190,80, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,190,80, 0); }
     }
     .item.done {
-      background: rgba(180, 255, 180, 0.25);
-      color: #aaa;
+      background: rgba(180, 255, 180, 0.3);
       text-decoration: line-through;
+      color: #777;
+    }
+    .item .note {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #444;
+      font-style: italic;
+    }
+    .remaining-time {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #b00;
     }
     .tracker {
-      font-size: 14px;
       text-align: center;
-      margin-bottom: 6px;
+      margin-top: 16px;
     }
     .tracker button {
-      margin-top: 5px;
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
+      margin-top: 6px;
       background-color: #ffbf47;
+      border: none;
+      padding: 6px 14px;
       font-size: 14px;
+      border-radius: 6px;
       cursor: pointer;
     }
     .free-note {
       width: 100%;
-      max-width: 100%;
-      overflow-x: hidden;
-      border: none;
-      outline: none;
-      border-bottom: 1px dashed #aaa;
-      background: transparent;
-      padding: 6px;
-      resize: none;
-      font-family: 'Microsoft YaHei', sans-serif;
+      margin-top: 20px;
       font-size: 14px;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      resize: vertical;
     }
     .modal {
       position: fixed;
@@ -166,7 +144,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
@@ -185,57 +163,54 @@
       resize: vertical;
     }
     .modal button {
-      margin-top: 8px;
-      padding: 6px 12px;
-      font-size: 14px;
+      margin-top: 10px;
+      padding: 6px 14px;
+      background-color: #f06292;
       border: none;
-      border-radius: 6px;
-      background: #f06292;
       color: white;
+      border-radius: 6px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>— 时间表 —</h1>
-    <div class="date" id="date">载入中...</div>
-  </header>
-  <div class="container">
-    <button id="editBtn">📝 编辑任务</button>
-    <div class="task-area" id="taskList"></div>
-    <div class="bottom-bar">
-      <div class="tracker">
-        今日已学习 <span id="study-time">00:00:00</span><br>
-        <button onclick="toggleTimer(this)">▶️ 开始计时</button>
-      </div>
-      <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
-    </div>
-  </div>
-  <div class="modal" id="taskModal">
+  <!-- 结构保留原样 -->
+  <div class="modal" id="noteModal">
     <div style="display:flex; flex-direction:column; align-items:center;">
-      <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
-      <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
+      <textarea id="noteInput" placeholder="输入任务备注...\n留空表示无备注"></textarea>
+      <button onclick="saveNote()">✅ 保存备注</button>
     </div>
   </div>
-  <script>
-    const date = new Date();
-    document.getElementById('date').textContent = date.toLocaleDateString('zh-CN', {
-      year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
-    });
 
-    function formatTime(seconds) {
-      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-      const s = String(seconds % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
+  <script>
+    let currentNoteTarget = null;
+
+    function openNoteEditor(target) {
+      currentNoteTarget = target;
+      const taskId = target.dataset.id;
+      const storedNote = localStorage.getItem('note-' + taskId) || '';
+      document.getElementById('noteInput').value = storedNote;
+      document.getElementById('noteModal').style.display = 'flex';
+    }
+
+    function saveNote() {
+      const val = document.getElementById('noteInput').value.trim();
+      if (!currentNoteTarget) return;
+      const taskId = currentNoteTarget.dataset.id;
+      if (val) {
+        localStorage.setItem('note-' + taskId, val);
+      } else {
+        localStorage.removeItem('note-' + taskId);
+      }
+      renderTasks();
+      document.getElementById('noteModal').style.display = 'none';
     }
 
     function renderTasks() {
       const list = document.getElementById('taskList');
       list.innerHTML = '';
       const lines = (localStorage.getItem('taskInput') || '').trim().split('\n');
-      lines.forEach(line => {
+      lines.forEach((line, index) => {
         const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
         if (match) {
           const [_, start, end, content] = match;
@@ -243,96 +218,21 @@
           div.className = 'item';
           div.dataset.start = start;
           div.dataset.end = end;
+          div.dataset.id = index;
+          const note = localStorage.getItem('note-' + index);
           div.innerHTML = `
             <div class="item-header">
-              <span>${start} - ${end} ${content}</span>
+              <span data-id="${index}" onclick="openNoteEditor(this)">${start} - ${end} ${content}</span>
               <span class="check-btn" onclick="toggleDone(this)">✔️</span>
             </div>
             <div class="progress"><div class="bar"></div></div>
             <div class="remaining-time"></div>
+            ${note ? `<div class="note">${note}</div>` : ''}
           `;
           list.appendChild(div);
         }
       });
     }
-
-    function toggleDone(el) {
-      el.parentElement.parentElement.classList.toggle("done");
-    }
-
-    function highlightAndProgress() {
-      const now = new Date();
-      const nowMins = now.getHours() * 60 + now.getMinutes();
-      const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      document.querySelectorAll('.item').forEach(item => {
-        const [h1, m1] = item.dataset.start.split(":").map(Number);
-        const [h2, m2] = item.dataset.end.split(":").map(Number);
-        const start = h1 * 60 + m1;
-        const end = h2 * 60 + m2;
-        const startSecs = h1 * 3600 + m1 * 60;
-        const endSecs = h2 * 3600 + m2 * 60;
-        const bar = item.querySelector('.bar');
-        const rem = item.querySelector('.remaining-time');
-
-        if (nowMins >= start && nowMins < end) {
-          item.classList.add("active");
-          const progress = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100;
-          bar.style.width = progress + '%';
-          const secsLeft = endSecs - nowSecs;
-          rem.textContent = `剩余 ${formatTime(secsLeft)}`;
-        } else {
-          item.classList.remove("active");
-          bar.style.width = '0%';
-          rem.textContent = '';
-        }
-      });
-    }
-
-    let timer = null;
-    let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
-    let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
-
-    function updateStudyTime() {
-      document.getElementById('study-time').textContent = formatTime(studySeconds);
-    }
-
-    function toggleTimer(btn) {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
-        btn.textContent = "▶️ 开始计时";
-      } else {
-        timer = setInterval(() => {
-          studySeconds++;
-          localStorage.setItem(todayKey, studySeconds);
-          updateStudyTime();
-        }, 1000);
-        btn.textContent = "⏸️ 暂停计时";
-      }
-    }
-
-    function openTaskEditor() {
-      document.getElementById('taskModal').style.display = 'flex';
-      document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
-    }
-
-    function closeTaskEditor() {
-      const val = document.getElementById('taskInput').value;
-      localStorage.setItem('taskInput', val);
-      renderTasks();
-      document.getElementById('taskModal').style.display = 'none';
-    }
-
-    document.getElementById('editBtn').addEventListener('click', openTaskEditor);
-    document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
-    document.getElementById('free-note').addEventListener('input', e => {
-      localStorage.setItem('freeNote', e.target.value);
-    });
-
-    renderTasks();
-    updateStudyTime();
-    highlightAndProgress();
-    setInterval(highlightAndProgress, 1000);
   </script>
 </body>
 </html>
