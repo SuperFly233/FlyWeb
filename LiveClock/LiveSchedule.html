@@ -212,12 +212,21 @@
       <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
     </div>
   </div>
+
   <div class="modal" id="taskModal">
     <div style="display:flex; flex-direction:column; align-items:center;">
       <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
       <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
     </div>
   </div>
+
+  <div class="modal" id="noteModal">
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <textarea id="noteInput" placeholder="输入该任务的备注内容..."></textarea>
+      <button onclick="saveNote()">✅ 保存备注</button>
+    </div>
+  </div>
+
   <script>
     const date = new Date();
     document.getElementById('date').textContent = date.toLocaleDateString('zh-CN', {
@@ -245,12 +254,20 @@
           div.dataset.end = end;
           div.innerHTML = `
             <div class="item-header">
-              <span>${start} - ${end} ${content}</span>
+              <span class="task-title" onclick="editNote(this)">${start} - ${end} ${content}</span>
               <span class="check-btn" onclick="toggleDone(this)">✔️</span>
             </div>
             <div class="progress"><div class="bar"></div></div>
             <div class="remaining-time"></div>
+            <div class="note-text"></div>
           `;
+          const noteKey = 'note-' + start + '-' + end;
+          const noteText = localStorage.getItem(noteKey);
+          if (noteText) {
+            const noteDiv = div.querySelector('.note-text');
+            noteDiv.textContent = '备注：' + noteText;
+            noteDiv.style.cssText = 'font-size: 13px; color: #555; margin-top: 6px;';
+          }
           list.appendChild(div);
         }
       });
@@ -273,7 +290,6 @@
         const endSecs = h2 * 3600 + m2 * 60;
         const bar = item.querySelector('.bar');
         const rem = item.querySelector('.remaining-time');
-
         if (nowMins >= start && nowMins < end) {
           item.classList.add("active");
           const progress = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100;
@@ -291,11 +307,9 @@
     let timer = null;
     let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
     let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
-
     function updateStudyTime() {
       document.getElementById('study-time').textContent = formatTime(studySeconds);
     }
-
     function toggleTimer(btn) {
       if (timer) {
         clearInterval(timer);
@@ -321,6 +335,31 @@
       localStorage.setItem('taskInput', val);
       renderTasks();
       document.getElementById('taskModal').style.display = 'none';
+    }
+
+    let currentNoteTarget = null;
+    function editNote(el) {
+      const parent = el.closest('.item');
+      currentNoteTarget = parent;
+      const key = 'note-' + parent.dataset.start + '-' + parent.dataset.end;
+      const val = localStorage.getItem(key) || '';
+      document.getElementById('noteInput').value = val;
+      document.getElementById('noteModal').style.display = 'flex';
+    }
+
+    function saveNote() {
+      if (!currentNoteTarget) return;
+      const key = 'note-' + currentNoteTarget.dataset.start + '-' + currentNoteTarget.dataset.end;
+      const val = document.getElementById('noteInput').value.trim();
+      localStorage.setItem(key, val);
+      const noteDiv = currentNoteTarget.querySelector('.note-text');
+      if (val) {
+        noteDiv.textContent = '备注：' + val;
+        noteDiv.style.cssText = 'font-size: 13px; color: #555; margin-top: 6px;';
+      } else {
+        noteDiv.textContent = '';
+      }
+      document.getElementById('noteModal').style.display = 'none';
     }
 
     document.getElementById('editBtn').addEventListener('click', openTaskEditor);
