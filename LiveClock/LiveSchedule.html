@@ -5,6 +5,9 @@
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
   <style>
+    html {
+      overflow-x: hidden;
+    }
     body {
       margin: 0;
       padding: 0;
@@ -45,6 +48,7 @@
       flex-direction: column;
       align-items: center;
       overflow-y: auto;
+      max-width: 100%;
     }
     #editBtn {
       margin-bottom: 12px;
@@ -313,7 +317,6 @@
     }
 
     document.getElementById('editBtn').addEventListener('click', openTaskEditor);
-
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
     document.getElementById('free-note').addEventListener('input', e => {
       localStorage.setItem('freeNote', e.target.value);
