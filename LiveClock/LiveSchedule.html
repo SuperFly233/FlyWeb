@@ -14,15 +14,13 @@
       font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
       color: #333;
       overflow: hidden;
-    }
-    .container {
-      padding: 20px 16px;
-      height: 100%;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
+    }
+    header {
+      text-align: center;
+      padding: 12px 0 0;
+      flex-shrink: 0;
     }
     h1 {
       font-size: 22px;
@@ -30,13 +28,23 @@
       letter-spacing: 2px;
     }
     .date {
-      margin: 10px 0 18px;
+      margin: 6px auto 10px;
       font-size: 15px;
       color: #fff;
       background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
       padding: 4px 12px;
       border-radius: 16px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+    }
+    .container {
+      flex: 1;
+      padding: 10px 16px 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
     }
     #editBtn {
       margin-bottom: 12px;
@@ -180,27 +188,25 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <header>
     <h1>— 时间表 —</h1>
     <div class="date" id="date">载入中...</div>
+  </header>
+  <div class="container">
     <button id="editBtn">📝 编辑任务</button>
     <div id="taskList"></div>
-
     <div class="tracker">
       今日已学习 <span id="study-time">00:00:00</span><br>
       <button onclick="toggleTimer(this)">▶️ 开始计时</button>
     </div>
-
     <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
   </div>
-
   <div class="modal" id="taskModal">
     <div style="display:flex; flex-direction:column; align-items:center;">
       <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
       <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
     </div>
   </div>
-
   <script>
     const date = new Date();
     document.getElementById('date').textContent = date.toLocaleDateString('zh-CN', {
