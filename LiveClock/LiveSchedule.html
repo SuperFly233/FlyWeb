@@ -38,6 +38,17 @@
       border-radius: 16px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
+    .task-input {
+      width: 100%;
+      font-size: 14px;
+      font-family: 'Microsoft YaHei', sans-serif;
+      margin: 10px 0;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.6);
+      padding: 8px;
+      resize: vertical;
+    }
     .item {
       width: 92%;
       font-size: 16px;
@@ -135,15 +146,6 @@
       resize: none;
       font-family: 'Microsoft YaHei', sans-serif;
     }
-    .editable-area {
-      margin-top: 14px;
-      width: 100%;
-      padding: 6px;
-      background: rgba(255,255,255,0.3);
-      border-radius: 8px;
-      border: 1px dashed #ccc;
-      font-family: 'Microsoft YaHei', sans-serif;
-    }
   </style>
 </head>
 <body>
@@ -151,18 +153,15 @@
     <h1>— 时间表 —</h1>
     <div class="date" id="date">载入中...</div>
 
-    <div id="editable-tasks" contenteditable="true" class="editable-area">20:00 - 21:00 阅读 · 作文
-21:00 - 22:00 作文 · 翻译
-22:00 - 22:30 ChatGPT总结</div>
-
-    <div id="items-container"></div>
+    <textarea class="task-input" id="taskInput" rows="3" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
+    <div id="taskList"></div>
 
     <div class="tracker">
-      今日已学习 <span id="study-time">00:00</span><br>
+      今日已学习 <span id="study-time">00:00:00</span><br>
       <button onclick="toggleTimer(this)">▶️ 开始计时</button>
     </div>
 
-    <textarea class="free-note" rows="3" id="free-note" placeholder="在这里写点什么...（可随意编辑）"></textarea>
+    <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
   </div>
 
   <script>
@@ -171,41 +170,37 @@
       year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
     });
 
-    function formatTime(totalSeconds) {
-      const h = Math.floor(totalSeconds / 3600);
-      const m = Math.floor((totalSeconds % 3600) / 60);
-      const s = totalSeconds % 60;
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    function formatTime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
     }
 
-    function formatRemaining(seconds) {
-      return formatTime(seconds);
-    }
-
-    function renderItems() {
-      const container = document.getElementById('items-container');
-      container.innerHTML = '';
-      const lines = document.getElementById('editable-tasks').innerText.trim().split('\n');
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      const lines = document.getElementById('taskInput').value.trim().split('\n');
       lines.forEach(line => {
-        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s*(.*)/);
+        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
         if (match) {
-          const [_, start, end, title] = match;
-          const item = document.createElement('div');
-          item.className = 'item';
-          item.dataset.start = start;
-          item.dataset.end = end;
-          item.innerHTML = `
+          const [_, start, end, content] = match;
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.dataset.start = start;
+          div.dataset.end = end;
+          div.innerHTML = `
             <div class="item-header">
-              <span>${start} - ${end} ${title}</span>
+              <span>${start} - ${end} ${content}</span>
               <span class="check-btn" onclick="toggleDone(this)">✔️</span>
             </div>
             <div class="progress"><div class="bar"></div></div>
             <div class="remaining-time"></div>
           `;
-          container.appendChild(item);
+          list.appendChild(div);
         }
       });
-      localStorage.setItem('tasks', document.getElementById('editable-tasks').innerText.trim());
+      localStorage.setItem('taskInput', document.getElementById('taskInput').value);
     }
 
     function toggleDone(el) {
@@ -231,7 +226,7 @@
           const progress = ((nowMins - start) / (end - start)) * 100;
           bar.style.width = progress + '%';
           const secsLeft = endSecs - nowSecs;
-          rem.textContent = `剩余 ${formatRemaining(secsLeft)}`;
+          rem.textContent = `剩余 ${formatTime(secsLeft)}`;
         } else {
           item.classList.remove("active");
           bar.style.width = '0%';
@@ -253,22 +248,23 @@
       } else {
         timer = setInterval(() => {
           studySeconds++;
-          updateStudyTime();
           localStorage.setItem('studySeconds', studySeconds);
+          updateStudyTime();
         }, 1000);
         btn.textContent = "⏸️ 暂停计时";
       }
     }
 
-    document.getElementById('editable-tasks').addEventListener('input', renderItems);
+    document.getElementById('taskInput').addEventListener('input', renderTasks);
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
     document.getElementById('free-note').addEventListener('input', e => {
       localStorage.setItem('freeNote', e.target.value);
     });
 
-    renderItems();
-    highlightAndProgress();
+    document.getElementById('taskInput').value = localStorage.getItem('taskInput') || `20:00 - 21:00 阅读 · 作文\n21:00 - 22:00 作文 · 翻译\n22:00 - 22:30 ChatGPT总结`;
+    renderTasks();
     updateStudyTime();
+    highlightAndProgress();
     setInterval(highlightAndProgress, 1000);
   </script>
 </body>
