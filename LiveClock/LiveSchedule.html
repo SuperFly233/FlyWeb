@@ -5,10 +5,7 @@
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
   <style>
-    html {
-      overflow-x: hidden;
-    }
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       width: 332px;
@@ -42,13 +39,12 @@
     }
     .container {
       flex: 1;
-      padding: 10px 16px 20px;
+      padding: 10px 16px 0;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
       max-width: 100%;
+      overflow: hidden;
     }
     #editBtn {
       margin-bottom: 12px;
@@ -59,38 +55,18 @@
       cursor: pointer;
       color: white;
     }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(6px);
-      display: none;
-      justify-content: center;
-      align-items: center;
+    .task-area {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 10px;
     }
-    .modal textarea {
-      width: 90%;
-      height: 300px;
-      font-size: 14px;
-      font-family: 'Microsoft YaHei', sans-serif;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff;
-      resize: vertical;
-    }
-    .modal button {
-      margin-top: 8px;
-      padding: 6px 12px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      background: #f06292;
-      color: white;
-      cursor: pointer;
+    .bottom-bar {
+      flex-shrink: 0;
+      padding: 10px 0 14px;
+      background-color: transparent;
+      box-sizing: border-box;
+      position: sticky;
+      bottom: 0;
     }
     .item {
       width: 92%;
@@ -158,9 +134,9 @@
       text-decoration: line-through;
     }
     .tracker {
-      margin-top: 10px;
       font-size: 14px;
       text-align: center;
+      margin-bottom: 6px;
     }
     .tracker button {
       margin-top: 5px;
@@ -171,16 +147,10 @@
       font-size: 14px;
       cursor: pointer;
     }
-    .remaining-time {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #c00;
-      font-weight: bold;
-    }
     .free-note {
-      margin-top: 20px;
-      font-size: 14px;
       width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
       border: none;
       outline: none;
       border-bottom: 1px dashed #aaa;
@@ -188,6 +158,7 @@
       padding: 6px;
       resize: none;
       font-family: 'Microsoft YaHei', sans-serif;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -198,17 +169,13 @@
   </header>
   <div class="container">
     <button id="editBtn">📝 编辑任务</button>
-    <div id="taskList"></div>
-    <div class="tracker">
-      今日已学习 <span id="study-time">00:00:00</span><br>
-      <button onclick="toggleTimer(this)">▶️ 开始计时</button>
-    </div>
-    <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
-  </div>
-  <div class="modal" id="taskModal">
-    <div style="display:flex; flex-direction:column; align-items:center;">
-      <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
-      <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
+    <div class="task-area" id="taskList"></div>
+    <div class="bottom-bar">
+      <div class="tracker">
+        今日已学习 <span id="study-time">00:00:00</span><br>
+        <button onclick="toggleTimer(this)">▶️ 开始计时</button>
+      </div>
+      <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
     </div>
   </div>
   <script>
@@ -269,7 +236,7 @@
 
         if (nowMins >= start && nowMins < end) {
           item.classList.add("active");
-          const progress = ((nowMins - start) / (end - start)) * 100;
+          const progress = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100;
           bar.style.width = progress + '%';
           const secsLeft = endSecs - nowSecs;
           rem.textContent = `剩余 ${formatTime(secsLeft)}`;
@@ -304,19 +271,14 @@
       }
     }
 
-    function openTaskEditor() {
-      document.getElementById('taskModal').style.display = 'flex';
-      document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
-    }
+    document.getElementById('editBtn').addEventListener('click', () => {
+      const val = prompt("请输入任务（格式：HH:MM - HH:MM 任务内容\n每行一条）", localStorage.getItem('taskInput') || '');
+      if (val !== null) {
+        localStorage.setItem('taskInput', val);
+        renderTasks();
+      }
+    });
 
-    function closeTaskEditor() {
-      const val = document.getElementById('taskInput').value;
-      localStorage.setItem('taskInput', val);
-      renderTasks();
-      document.getElementById('taskModal').style.display = 'none';
-    }
-
-    document.getElementById('editBtn').addEventListener('click', openTaskEditor);
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
     document.getElementById('free-note').addEventListener('input', e => {
       localStorage.setItem('freeNote', e.target.value);
