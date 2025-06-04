@@ -8,78 +8,56 @@
     html, body {
       margin: 0;
       padding: 0;
-      width: 360px;
-      height: 763px;
+      width: 100%;
+      height: 100vh;
       background-color: rgb(254, 245, 202);
       font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
       color: #333;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
     }
     header {
       text-align: center;
-      padding: 20px 0 0;
-      flex-shrink: 0;
+      padding: 12px 0 0;
     }
     h1 {
       font-size: 22px;
       margin: 0;
-      letter-spacing: 2px;
     }
     .date {
+      display: inline-block;
       margin: 6px auto 10px;
       font-size: 15px;
       color: #fff;
       background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
       padding: 4px 12px;
       border-radius: 16px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      display: inline-block;
+      max-width: 180px;
+      text-align: center;
     }
     .container {
       flex: 1;
-      padding: 10px 16px 0;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      max-width: 100%;
+      padding: 10px 16px 0;
       overflow: hidden;
-    }
-    #editBtn {
-      margin-bottom: 12px;
-      background: #ff9f40;
-      border: none;
-      border-radius: 8px;
-      padding: 4px 12px;
-      cursor: pointer;
-      color: white;
     }
     .task-area {
       flex: 1;
       overflow-y: auto;
+      display: block;
       padding-bottom: 10px;
-      scroll-behavior: smooth;
-    }
-    .bottom-bar {
-      flex-shrink: 0;
-      padding: 10px 0 14px;
-      background: rgb(254, 245, 202);
-      position: sticky;
-      bottom: 0;
-      z-index: 10;
     }
     .item {
+      display: block;
       width: 92%;
+      margin: 0 auto 12px;
       font-size: 16px;
       padding: 10px 14px;
       border-radius: 10px;
-      margin: 0 auto 12px;
       background: rgba(255, 255, 255, 0.45);
       border: 1px solid rgba(255, 160, 0, 0.15);
       backdrop-filter: blur(4px);
-      display: flex;
-      flex-direction: column;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       box-sizing: border-box;
       position: relative;
@@ -88,35 +66,15 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      cursor: pointer;
     }
     .item .check-btn {
       font-size: 20px;
       cursor: pointer;
-      user-select: none;
     }
-    .item .progress {
-      height: 6px;
-      background-color: #ffd;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 6px;
-      position: relative;
-      display: none;
-    }
-    .item.active .progress {
-      display: block;
-    }
-    .item .bar {
-      height: 100%;
-      width: 0;
-      background: linear-gradient(270deg, orange, #ffa500, orange);
-      background-size: 200% 100%;
-      animation: slide 1s linear infinite;
-    }
-    @keyframes slide {
-      0% { background-position: 200% 0; }
-      100% { background-position: 0% 0; }
+    .item.done {
+      background: rgba(180, 255, 180, 0.25);
+      color: #aaa;
+      text-decoration: line-through;
     }
     .item.active {
       background: rgba(255, 190, 80, 0.6);
@@ -128,21 +86,46 @@
       70% { box-shadow: 0 0 0 10px rgba(255,190,80, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255,190,80, 0); }
     }
-    .item.done {
-      background: rgba(180, 255, 180, 0.25);
-      color: #aaa;
-      text-decoration: line-through;
+    .progress {
+      height: 6px;
+      background-color: #ffd;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+      display: none;
     }
-    .sub-note {
-      font-size: 13px;
-      color: #555;
-      padding-top: 6px;
-      white-space: pre-wrap;
+    .item.active .progress {
+      display: block;
+    }
+    .bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(270deg, orange, #ffa500, orange);
+      background-size: 200% 100%;
+      animation: slide 1s linear infinite;
+    }
+    @keyframes slide {
+      0% { background-position: 200% 0; }
+      100% { background-position: 0% 0; }
+    }
+    .remaining-time {
+      font-weight: bold;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+    #editBtn, #historyBtn {
+      margin: 0 6px 10px;
+      background: #ff9f40;
+      border: none;
+      border-radius: 8px;
+      padding: 4px 12px;
+      cursor: pointer;
+      color: white;
     }
     .tracker {
-      font-size: 14px;
       text-align: center;
-      margin-bottom: 6px;
+      font-size: 14px;
+      margin-top: 6px;
     }
     .tracker button {
       margin-top: 5px;
@@ -155,23 +138,24 @@
     }
     .free-note {
       width: 100%;
-      max-width: 100%;
       border: none;
       outline: none;
-      border-bottom: 1px dashed #aaa;
       background: transparent;
       padding: 6px;
-      resize: none;
-      font-family: 'Microsoft YaHei', sans-serif;
       font-size: 14px;
+      font-family: 'Microsoft YaHei', sans-serif;
+      border-bottom: 1px dashed #aaa;
+    }
+    .note-text {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
     }
     .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
@@ -182,26 +166,232 @@
       width: 90%;
       height: 300px;
       font-size: 14px;
-      font-family: 'Microsoft YaHei', sans-serif;
       padding: 12px;
+      border-radius: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff;
-      resize: vertical;
     }
     .modal button {
-      margin-top: 8px;
+      margin-top: 10px;
       padding: 6px 12px;
       font-size: 14px;
-      border: none;
-      border-radius: 6px;
       background: #f06292;
       color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-<!-- JS 逻辑将跟进加入 task-header 点击弹出备注编辑功能 -->
+  <header>
+    <h1>— 时间表 —</h1>
+    <div class="date" id="date">载入中...</div>
+    <button id="editBtn">📝 编辑任务</button>
+    <button id="historyBtn">📜 查看历史</button>
+  </header>
+
+  <div class="container">
+    <div class="task-area" id="taskList"></div>
+    <div class="tracker">
+      已学习：<span id="study-time">00:00:00</span>
+      <button onclick="toggleTimer(this)">▶️ 开始计时</button>
+      <div id="task-counts"></div>
+    </div>
+    <textarea class="free-note" id="free-note" rows="2" placeholder="随便写点什么..."></textarea>
+  </div>
+
+  <div class="modal" id="taskModal">
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <textarea id="taskInput" placeholder="格式：08:00 - 09:00 数学复习"></textarea>
+      <button onclick="closeTaskEditor()">✅ 保存任务</button>
+    </div>
+  </div>
+
+  <div class="modal" id="noteModal">
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <textarea id="noteInput" placeholder="输入备注内容..."></textarea>
+      <button onclick="saveNote()">✅ 保存备注</button>
+    </div>
+  </div>
+
+  <div class="modal" id="historyModal">
+    <div style="width: 90%; max-height: 80%; overflow-y: auto; background: white; padding: 16px; border-radius: 8px;">
+      <h3 style="margin-top:0;">历史记录</h3>
+      <div id="historyContent"></div>
+      <button onclick="closeHistory()">关闭</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('date').textContent = new Date().toLocaleDateString('zh-CN', {
+      year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
+    }).replace(/(周[一二三四五六日])$/, ' $1');
+
+    function formatTime(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      const lines = (localStorage.getItem('taskInput') || '').trim().split('\n');
+      lines.forEach(line => {
+        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
+        if (match) {
+          const [_, start, end, content] = match;
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.dataset.start = start;
+          div.dataset.end = end;
+          div.innerHTML = `
+            <div class="item-header">
+              <span class="task-title" onclick="editNote(this)">${start} - ${end} ${content}</span>
+              <span class="check-btn" onclick="toggleDone(this)">✔️</span>
+            </div>
+            <div class="progress"><div class="bar"></div></div>
+            <div class="remaining-time"></div>
+            <div class="note-text"></div>
+          `;
+          const noteKey = 'note-' + start + '-' + end;
+          const noteText = localStorage.getItem(noteKey);
+          if (noteText) {
+            const noteDiv = div.querySelector('.note-text');
+            noteDiv.textContent = '备注：' + noteText;
+          }
+          list.appendChild(div);
+        }
+      });
+      updateTaskCounts();
+    }
+
+    function toggleDone(el) {
+      el.closest('.item').classList.toggle('done');
+      updateTaskCounts();
+    }
+
+    function updateTaskCounts() {
+      const total = document.querySelectorAll('.item').length;
+      const done = document.querySelectorAll('.item.done').length;
+      document.getElementById('task-counts').textContent = `完成任务：${done} / ${total}`;
+    }
+
+    function highlightAndProgress() {
+      const now = new Date();
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      const nowSecs = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+      document.querySelectorAll('.item').forEach(item => {
+        const [h1, m1] = item.dataset.start.split(":").map(Number);
+        const [h2, m2] = item.dataset.end.split(":").map(Number);
+        const startMins = h1 * 60 + m1;
+        const endMins = h2 * 60 + m2;
+        const startSecs = h1 * 3600 + m1 * 60;
+        const endSecs = h2 * 3600 + m2 * 60;
+        const bar = item.querySelector('.bar');
+        const rem = item.querySelector('.remaining-time');
+        if (nowMins >= startMins && nowMins < endMins) {
+          item.classList.add('active');
+          bar.style.width = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100 + '%';
+          rem.textContent = '剩余 ' + formatTime(endSecs - nowSecs);
+        } else {
+          item.classList.remove('active');
+          bar.style.width = '0%';
+          rem.textContent = '';
+        }
+      });
+    }
+
+    let timer = null;
+    let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
+    let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
+    function updateStudyTime() {
+      document.getElementById('study-time').textContent = formatTime(studySeconds);
+    }
+    function toggleTimer(btn) {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        btn.textContent = "▶️ 开始计时";
+      } else {
+        timer = setInterval(() => {
+          studySeconds++;
+          localStorage.setItem(todayKey, studySeconds);
+          updateStudyTime();
+        }, 1000);
+        btn.textContent = "⏸️ 暂停计时";
+      }
+    }
+
+    function openTaskEditor() {
+      document.getElementById('taskModal').style.display = 'flex';
+      document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
+    }
+    function closeTaskEditor() {
+      localStorage.setItem('taskInput', document.getElementById('taskInput').value);
+      document.getElementById('taskModal').style.display = 'none';
+      renderTasks();
+    }
+
+    let currentNoteTarget = null;
+    function editNote(el) {
+      const item = el.closest('.item');
+      currentNoteTarget = item;
+      const key = 'note-' + item.dataset.start + '-' + item.dataset.end;
+      document.getElementById('noteInput').value = localStorage.getItem(key) || '';
+      document.getElementById('noteModal').style.display = 'flex';
+    }
+    function saveNote() {
+      if (!currentNoteTarget) return;
+      const key = 'note-' + currentNoteTarget.dataset.start + '-' + currentNoteTarget.dataset.end;
+      const val = document.getElementById('noteInput').value.trim();
+      localStorage.setItem(key, val);
+      const noteDiv = currentNoteTarget.querySelector('.note-text');
+      noteDiv.textContent = val ? '备注：' + val : '';
+      document.getElementById('noteModal').style.display = 'none';
+    }
+
+    document.getElementById('editBtn').onclick = openTaskEditor;
+    document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
+    document.getElementById('free-note').addEventListener('input', e => {
+      localStorage.setItem('freeNote', e.target.value);
+    });
+
+    const historyKey = 'taskHistory';
+    const lastDateKey = 'lastOpenedDate';
+    const todayStr = new Date().toLocaleDateString();
+    const lastDate = localStorage.getItem(lastDateKey);
+    if (lastDate !== todayStr) {
+      const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      if (localStorage.getItem('taskInput')) {
+        history[lastDate || todayStr] = localStorage.getItem('taskInput');
+        localStorage.setItem(historyKey, JSON.stringify(history));
+      }
+      localStorage.setItem('taskInput', '');
+      localStorage.setItem(lastDateKey, todayStr);
+    }
+
+    document.getElementById('historyBtn').onclick = () => {
+      const container = document.getElementById('historyContent');
+      const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      container.innerHTML = '';
+      Object.keys(history).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const seconds = parseInt(localStorage.getItem('studySeconds-' + date) || '0');
+        const block = document.createElement('div');
+        block.innerHTML = `<details><summary>${date}（已学习：${formatTime(seconds)}）</summary><pre>${history[date]}</pre></details>`;
+        container.appendChild(block);
+      });
+      document.getElementById('historyModal').style.display = 'flex';
+    };
+    function closeHistory() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+
+    renderTasks();
+    updateStudyTime();
+    highlightAndProgress();
+    setInterval(highlightAndProgress, 1000);
+  </script>
 </body>
 </html>
