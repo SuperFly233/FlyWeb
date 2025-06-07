@@ -4,140 +4,157 @@
   <meta charset="UTF-8">
   <title>时间表</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@500&display=swap" rel="stylesheet">
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      width: 332px;
-      height: 763px;
+      width: 100%;
+      height: 100vh;
       background-color: rgb(254, 245, 202);
-      font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+      font-family: 'Noto Sans SC', sans-serif;
       color: #333;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
+      animation: fadeInBody 0.8s ease-in-out;
     }
+  
     header {
       text-align: center;
       padding: 12px 0 0;
-      flex-shrink: 0;
     }
+  
     h1 {
       font-size: 22px;
       margin: 0;
-      letter-spacing: 2px;
     }
+  
     .date {
+      display: inline-block;
       margin: 6px auto 10px;
       font-size: 15px;
       color: #fff;
       background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
       padding: 4px 12px;
       border-radius: 16px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      display: inline-block;
+      max-width: 180px;
+      text-align: center;
     }
+  
     .container {
       flex: 1;
-      padding: 10px 16px 0;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      max-width: 100%;
+      padding: 10px 16px 0;
       overflow: hidden;
     }
-    #editBtn {
-      margin-bottom: 12px;
-      background: #ff9f40;
-      border: none;
-      border-radius: 8px;
-      padding: 4px 12px;
-      cursor: pointer;
-      color: white;
-    }
+  
     .task-area {
       flex: 1;
       overflow-y: auto;
+      display: block;
       padding-bottom: 10px;
     }
-    .bottom-bar {
-      flex-shrink: 0;
-      padding: 10px 0 14px;
-      background-color: transparent;
-      box-sizing: border-box;
-      position: sticky;
-      bottom: 0;
-    }
+  
     .item {
+      display: block;
       width: 92%;
+      margin: 0 auto 12px;
       font-size: 16px;
       padding: 10px 14px;
       border-radius: 10px;
-      margin: 0 auto 12px;
       background: rgba(255, 255, 255, 0.45);
       border: 1px solid rgba(255, 160, 0, 0.15);
       backdrop-filter: blur(4px);
-      display: flex;
-      flex-direction: column;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: all 0.3s ease;
       box-sizing: border-box;
       position: relative;
-      overflow: hidden;
+      animation: fadeInTask 0.4s ease-in-out;
     }
+  
     .item-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+  
     .item .check-btn {
       font-size: 20px;
       cursor: pointer;
-      user-select: none;
     }
-    .item .progress {
+  
+    .item.done {
+      background: rgba(180, 255, 180, 0.25);
+      color: #aaa;
+      text-decoration: line-through;
+      animation: tickDone 0.3s ease-in-out;
+    }
+  
+    .item.active {
+      background: rgba(255, 190, 80, 0.6);
+      font-weight: bold;
+      animation: pulse 1.5s infinite;
+    }
+  
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,190,80, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(255,190,80, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,190,80, 0); }
+    }
+  
+    .progress {
       height: 6px;
       background-color: #ffd;
       border-radius: 4px;
       overflow: hidden;
       margin-top: 6px;
-      position: relative;
       display: none;
     }
+  
     .item.active .progress {
       display: block;
     }
-    .item .bar {
+  
+    .bar {
       height: 100%;
       width: 0;
       background: linear-gradient(270deg, orange, #ffa500, orange);
       background-size: 200% 100%;
       animation: slide 1s linear infinite;
     }
+  
     @keyframes slide {
       0% { background-position: 200% 0; }
       100% { background-position: 0% 0; }
     }
-    .item.active {
-      background: rgba(255, 190, 80, 0.6);
+  
+    .remaining-time {
       font-weight: bold;
-      animation: pulse 1.5s infinite;
+      font-size: 15px;
+      margin-top: 4px;
     }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,190,80, 0.4); }
-      70% { box-shadow: 0 0 0 10px rgba(255,190,80, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,190,80, 0); }
+  
+    #editBtn, #historyBtn {
+      margin: 0 6px 10px;
+      background: #ff9f40;
+      border: none;
+      border-radius: 8px;
+      padding: 4px 12px;
+      cursor: pointer;
+      color: white;
+      transition: background 0.3s ease;
     }
-    .item.done {
-      background: rgba(180, 255, 180, 0.25);
-      color: #aaa;
-      text-decoration: line-through;
+  
+    #editBtn:hover, #historyBtn:hover {
+      background: #ff7f20;
     }
+  
     .tracker {
-      font-size: 14px;
       text-align: center;
-      margin-bottom: 6px;
+      font-size: 14px;
+      margin-top: 6px;
     }
+  
     .tracker button {
       margin-top: 5px;
       padding: 6px 12px;
@@ -146,100 +163,363 @@
       background-color: #ffbf47;
       font-size: 14px;
       cursor: pointer;
+      transition: transform 0.3s ease;
     }
+  
+    .tracker button:hover {
+      transform: scale(1.05);
+    }
+  
     .free-note {
       width: 100%;
-      max-width: 100%;
-      overflow-x: hidden;
       border: none;
       outline: none;
-      border-bottom: 1px dashed #aaa;
       background: transparent;
       padding: 6px;
-      resize: none;
-      font-family: 'Microsoft YaHei', sans-serif;
       font-size: 14px;
+      font-family: 'Noto Sans SC', sans-serif;
+      border-bottom: 1px dashed #aaa;
+      transition: border-color 0.3s ease, border-bottom 0.3s ease;
     }
+
+    /* ✅ 聚焦时变为深金色实线 */
+    .free-note:focus {
+      border-bottom: 1.5px solid #b8860b;
+    }
+  
+    .note-text {
+      font-size: 13px;
+      color: #555;
+      margin-top: 6px;
+    }
+  
     .modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
       backdrop-filter: blur(6px);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 999;
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
+  
+    .modal[style*="display: flex"] {
+      opacity: 1;
+      transform: scale(1);
+    }
+  
+    .modal[style*="display: none"] {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  
     .modal textarea {
       width: 90%;
       height: 300px;
       font-size: 14px;
-      font-family: 'Microsoft YaHei', sans-serif;
       padding: 12px;
+      border-radius: 10px;
       border: 1px solid #ccc;
-      border-radius: 8px;
-      background: #fff;
-      resize: vertical;
     }
+  
     .modal button {
-      margin-top: 8px;
+      margin-top: 10px;
       padding: 6px 12px;
       font-size: 14px;
-      border: none;
-      border-radius: 6px;
       background: #f06292;
       color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
+      transition: background 0.3s ease;
     }
-  </style>
+  
+    .modal button:hover {
+      background: #e91e63;
+    }
+    .modal textarea {
+      width: 92vw;
+      max-width: 600px;
+      height: 50vh;
+      font-size: 16px;
+      line-height: 1.6;
+      padding: 16px;
+      border-radius: 16px;
+      border: none;
+      outline: none;
+      font-family: 'Noto Sans SC', sans-serif;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      resize: vertical;
+      transition: all 0.3s ease;
+    }
+
+    .modal button {
+      margin-top: 16px;
+      padding: 10px 18px;
+      font-size: 16px;
+      background: #f06292;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Noto Sans SC', sans-serif;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .modal button:hover {
+          background: #e91e63;
+          transform: scale(1.05);
+        }
+        .history-preview-text {
+      background: rgba(240, 240, 240, 0.6);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #888;
+      font-family: 'Noto Sans SC', sans-serif;
+      margin: 6px 0 0 18px;
+      white-space: pre-wrap;
+    }
+
+    .history-full-text {
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.7;
+      font-family: 'Noto Sans SC', sans-serif;
+      margin: 8px 0 0 18px;
+      white-space: pre-wrap;
+      color: #333;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    
+
+    .history-toggle-btn {
+      display: inline-block;
+      background: #f1f1f1;
+      padding: 4px 12px;
+      margin: 8px 0 4px 18px;
+      font-size: 13px;
+      color: #555;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Noto Sans SC', sans-serif;
+      transition: all 0.25s ease;
+      user-select: none;
+    }
+    .history-toggle-btn:hover {
+      background: #e0e0e0;
+      color: #222;
+      transform: scale(1.03);
+    }
+
+  
+    @keyframes fadeInBody {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  
+    @keyframes fadeInTask {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  
+    @keyframes tickDone {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  
+    #task-counts {
+      transition: all 0.3s ease;
+    }
+    
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .calendar-card {
+      background: white;
+      border-radius: 18px;
+      padding: 24px 20px;
+      width: 92%;
+      max-width: 360px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+      animation: fadeInUp 0.4s ease;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+
+    .calendar-title {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .calendar-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 8px;
+      text-align: center;
+    }
+
+    .calendar-table th {
+      font-size: 14px;
+      color: #999;
+      font-weight: 600;
+    }
+
+    .calendar-table td {
+      width: 36px;
+      height: 36px;
+      line-height: 36px;
+      border-radius: 8px;
+      font-size: 15px;
+      color: #333;
+      transition: background 0.3s ease;
+    }
+
+    .calendar-table td.today {
+      background: #ffd866;
+      font-weight: bold;
+      border: 2px solid #f5b800;
+      color: #000;
+    }
+
+    .calendar-table td.weekend {
+      color: #d64545;
+    }
+
+    #calendarDisplay {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    #calendarDisplay .day {
+      padding: 6px 0;
+      border-radius: 6px;
+    }
+    #calendarDisplay .header {
+      font-weight: bold;
+      color: #444;
+      background: none;
+    }
+    #calendarDisplay .today {
+      background: #ffda8c;
+      font-weight: bold;
+    }
+    .calendar-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: fadeInUp 0.3s ease;
+    }
+    .calendar-title {
+      text-align: center;
+      margin-bottom: 12px;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    .calendar-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    .calendar-table th, .calendar-table td {
+      padding: 6px;
+      border: 1px solid #eee;
+      font-size: 14px;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+    .calendar-table td {
+      vertical-align: top;
+      height: 48px;
+    }
+    .calendar-table td.today {
+      background: #ffec99;
+      font-weight: bold;
+      border: 2px solid #f90;
+      border-radius: 6px;
+    }
+
+
+
+  </style>  
 </head>
 <body>
   <header>
     <h1>— 时间表 —</h1>
     <div class="date" id="date">载入中...</div>
-  </header>
-  <div class="container">
     <button id="editBtn">📝 编辑任务</button>
+    <button id="historyBtn">📜 查看历史</button>
+  </header>
+
+
+
+
+  <div class="container">
     <div class="task-area" id="taskList"></div>
-    <div class="bottom-bar">
-      <div class="tracker">
-        今日已学习 <span id="study-time">00:00:00</span><br>
-        <button onclick="toggleTimer(this)">▶️ 开始计时</button>
-      </div>
-      <textarea class="free-note" id="free-note" rows="3" placeholder="在这里写点什么...（可随意编辑）"></textarea>
+    <div class="tracker">
+      已学习：<span id="study-time">00:00:00</span>
+      <button onclick="toggleTimer(this)">▶️ 开始计时</button>
+      <div id="task-counts"></div>
     </div>
+    <textarea class="free-note" id="free-note" rows="2" placeholder="随便写点什么..."></textarea>
   </div>
 
   <div class="modal" id="taskModal">
     <div style="display:flex; flex-direction:column; align-items:center;">
-      <textarea id="taskInput" placeholder="格式：HH:MM - HH:MM 任务内容\n每行一条任务"></textarea>
-      <button onclick="closeTaskEditor()">✅ 保存并关闭</button>
+      <textarea id="taskInput" placeholder="格式：08:00 - 09:00 数学复习"></textarea>
+      <button onclick="closeTaskEditor()">✅ 保存任务</button>
     </div>
   </div>
 
   <div class="modal" id="noteModal">
     <div style="display:flex; flex-direction:column; align-items:center;">
-      <textarea id="noteInput" placeholder="输入该任务的备注内容..."></textarea>
+      <textarea id="noteInput" placeholder="输入备注内容..."></textarea>
       <button onclick="saveNote()">✅ 保存备注</button>
     </div>
   </div>
 
-  <script>
-    const date = new Date();
-    document.getElementById('date').textContent = date.toLocaleDateString('zh-CN', {
-      year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
-    });
+  <div class="modal" id="historyModal">
+    <div style="width: 90%; max-height: 80%; overflow-y: auto; background: white; padding: 16px; border-radius: 8px;">
+      <h3 style="margin-top:0;">历史记录</h3>
+      <div id="historyContent"></div>
+      <button onclick="closeHistory()">关闭</button>
+    </div>
+  </div>
 
+  <script>
+    document.getElementById('date').textContent = new Date().toLocaleDateString('zh-CN', {
+      year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
+    }).replace(/(周[一二三四五六日])$/, ' $1');
+  
+    const historyKey = 'taskHistory';
+    const lastDateKey = 'lastOpenedDate';
+    const todayStr = new Date().toLocaleDateString();
+  
     function formatTime(seconds) {
       const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
       const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
       const s = String(seconds % 60).padStart(2, '0');
       return `${h}:${m}:${s}`;
     }
-
+  
     function renderTasks() {
       const list = document.getElementById('taskList');
       list.innerHTML = '';
@@ -252,6 +532,10 @@
           div.className = 'item';
           div.dataset.start = start;
           div.dataset.end = end;
+          const doneKey = `done-${start}-${end}-${todayStr}`;
+          if (localStorage.getItem(doneKey) === 'true') {
+            div.classList.add('done');
+          }
           div.innerHTML = `
             <div class="item-header">
               <span class="task-title" onclick="editNote(this)">${start} - ${end} ${content}</span>
@@ -266,17 +550,37 @@
           if (noteText) {
             const noteDiv = div.querySelector('.note-text');
             noteDiv.textContent = '备注：' + noteText;
-            noteDiv.style.cssText = 'font-size: 13px; color: #555; margin-top: 6px;';
           }
           list.appendChild(div);
         }
       });
+      updateTaskCounts();
     }
-
+  
+    function updateTaskCounts() {
+      const total = document.querySelectorAll('.item').length;
+      const done = document.querySelectorAll('.item.done').length;
+      const counter = document.getElementById('task-counts');
+      counter.textContent = `完成任务：${done} / ${total}`;
+      if (total > 0 && done === total) {
+        counter.style.color = '#b8860b';
+        counter.style.fontWeight = 'bold';
+      } else {
+        counter.style.color = '';
+        counter.style.fontWeight = '';
+      }
+      saveTodayToHistory();
+    }
+  
     function toggleDone(el) {
-      el.parentElement.parentElement.classList.toggle("done");
+      const item = el.closest('.item');
+      const key = `done-${item.dataset.start}-${item.dataset.end}-${todayStr}`;
+      const isNowDone = !item.classList.contains('done');
+      item.classList.toggle('done');
+      localStorage.setItem(key, isNowDone); // true 或 false
+      updateTaskCounts();
     }
-
+  
     function highlightAndProgress() {
       const now = new Date();
       const nowMins = now.getHours() * 60 + now.getMinutes();
@@ -284,28 +588,26 @@
       document.querySelectorAll('.item').forEach(item => {
         const [h1, m1] = item.dataset.start.split(":").map(Number);
         const [h2, m2] = item.dataset.end.split(":").map(Number);
-        const start = h1 * 60 + m1;
-        const end = h2 * 60 + m2;
+        const startMins = h1 * 60 + m1;
+        const endMins = h2 * 60 + m2;
         const startSecs = h1 * 3600 + m1 * 60;
         const endSecs = h2 * 3600 + m2 * 60;
         const bar = item.querySelector('.bar');
         const rem = item.querySelector('.remaining-time');
-        if (nowMins >= start && nowMins < end) {
-          item.classList.add("active");
-          const progress = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100;
-          bar.style.width = progress + '%';
-          const secsLeft = endSecs - nowSecs;
-          rem.textContent = `剩余 ${formatTime(secsLeft)}`;
+        if (nowMins >= startMins && nowMins < endMins) {
+          item.classList.add('active');
+          bar.style.width = ((nowSecs - startSecs) / (endSecs - startSecs)) * 100 + '%';
+          rem.textContent = '剩余 ' + formatTime(endSecs - nowSecs);
         } else {
-          item.classList.remove("active");
+          item.classList.remove('active');
           bar.style.width = '0%';
           rem.textContent = '';
         }
       });
     }
-
+  
     let timer = null;
-    let todayKey = 'studySeconds-' + new Date().toLocaleDateString();
+    let todayKey = 'studySeconds-' + todayStr;
     let studySeconds = parseInt(localStorage.getItem(todayKey) || '0');
     function updateStudyTime() {
       document.getElementById('study-time').textContent = formatTime(studySeconds);
@@ -324,54 +626,268 @@
         btn.textContent = "⏸️ 暂停计时";
       }
     }
-
+  
     function openTaskEditor() {
       document.getElementById('taskModal').style.display = 'flex';
       document.getElementById('taskInput').value = localStorage.getItem('taskInput') || '';
     }
-
+  
     function closeTaskEditor() {
-      const val = document.getElementById('taskInput').value;
-      localStorage.setItem('taskInput', val);
-      renderTasks();
+      localStorage.setItem('taskInput', document.getElementById('taskInput').value);
       document.getElementById('taskModal').style.display = 'none';
+      renderTasks();
+      saveTodayToHistory();
     }
-
+  
     let currentNoteTarget = null;
     function editNote(el) {
-      const parent = el.closest('.item');
-      currentNoteTarget = parent;
-      const key = 'note-' + parent.dataset.start + '-' + parent.dataset.end;
-      const val = localStorage.getItem(key) || '';
-      document.getElementById('noteInput').value = val;
+      const item = el.closest('.item');
+      currentNoteTarget = item;
+      const key = 'note-' + item.dataset.start + '-' + item.dataset.end;
+      document.getElementById('noteInput').value = localStorage.getItem(key) || '';
       document.getElementById('noteModal').style.display = 'flex';
     }
-
+  
     function saveNote() {
       if (!currentNoteTarget) return;
       const key = 'note-' + currentNoteTarget.dataset.start + '-' + currentNoteTarget.dataset.end;
       const val = document.getElementById('noteInput').value.trim();
       localStorage.setItem(key, val);
       const noteDiv = currentNoteTarget.querySelector('.note-text');
-      if (val) {
-        noteDiv.textContent = '备注：' + val;
-        noteDiv.style.cssText = 'font-size: 13px; color: #555; margin-top: 6px;';
-      } else {
-        noteDiv.textContent = '';
-      }
+      noteDiv.textContent = val ? '备注：' + val : '';
       document.getElementById('noteModal').style.display = 'none';
+      saveTodayToHistory();
     }
-
-    document.getElementById('editBtn').addEventListener('click', openTaskEditor);
+  
+    function saveTodayToHistory() {
+      const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      history[todayStr] = localStorage.getItem('taskInput') || '';
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
+  
+    document.getElementById('editBtn').onclick = openTaskEditor;
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
     document.getElementById('free-note').addEventListener('input', e => {
       localStorage.setItem('freeNote', e.target.value);
     });
+  
+    const lastDate = localStorage.getItem(lastDateKey);
+    if (lastDate !== todayStr) {
+      const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      if (localStorage.getItem('taskInput')) {
+        history[lastDate || todayStr] = localStorage.getItem('taskInput');
+        localStorage.setItem(historyKey, JSON.stringify(history));
+      }
+      localStorage.setItem('taskInput', '');
+      localStorage.setItem(lastDateKey, todayStr);
+    }
+  
+    document.getElementById('historyBtn').onclick = () => {
+      const container = document.getElementById('historyContent');
+      const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
+      container.innerHTML = '';
 
+      const maxPreviewLines = 2;
+
+      Object.keys(history).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const seconds = parseInt(localStorage.getItem('studySeconds-' + date) || '0');
+        const fullText = history[date];
+        const lines = fullText.trim().split('\n');
+        const previewText = lines.slice(0, maxPreviewLines).join('\n') + (lines.length > maxPreviewLines ? '\n...' : '');
+
+        const wrapper = document.createElement('div');
+        wrapper.style.marginBottom = '18px';
+
+        const title = document.createElement('div');
+        title.style.fontWeight = 'bold';
+        title.style.margin = '4px 0 4px 0';
+      // 从历史记录中解析完成数（通过 note-done 标记识别）
+      let done = 0;
+      let total = 0;
+      if (history[date]) {
+        const taskLines = history[date].split('\n');
+        taskLines.forEach(line => {
+          const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
+          if (match) {
+            total++;
+            const key = `done-${match[1]}-${match[2]}-${date}`;
+            if (localStorage.getItem(key) === 'true') {
+              done++;
+            }
+          }
+        });
+      }
+
+      title.textContent = `${date}（已完成：${done}/${total}；已学习：${formatTime(seconds)}）`;
+
+        const previewBox = document.createElement('pre');
+        previewBox.textContent = previewText;
+        previewBox.className = 'history-preview-text';
+
+        const fullContent = document.createElement('pre');
+        const fullLines = fullText.trim().split('\n');
+        fullContent.innerHTML = '';
+        fullLines.forEach(line => {
+          const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
+          const div = document.createElement('div');
+          div.className = 'history-line';
+
+          if (match) {
+            const key = `done-${match[1]}-${match[2]}-${date}`;
+            const isDone = localStorage.getItem(key) === 'true';
+            div.textContent = isDone ? `✔ ${line}` : line;
+            if (isDone) div.classList.add('done');
+          } else {
+            div.textContent = line; // 非任务格式
+          }
+
+          fullContent.appendChild(div);
+        });
+        fullContent.className = 'history-full-text';
+        fullContent.style.display = 'none';
+
+        const toggleBtn = document.createElement('span');
+        toggleBtn.textContent = '▼ 展开';
+        toggleBtn.className = 'history-toggle-btn';
+        toggleBtn.style.cursor = 'pointer';
+        toggleBtn.style.color = '#666';
+        toggleBtn.style.marginLeft = '12px';
+        toggleBtn.style.fontSize = '14px';
+
+        toggleBtn.onclick = () => {
+          const isOpen = fullContent.style.display === 'block';
+          fullContent.style.display = isOpen ? 'none' : 'block';
+          previewBox.style.display = isOpen ? 'block' : 'none';
+          toggleBtn.textContent = isOpen ? '▼ 展开' : '▲ 收起';
+        };
+
+        wrapper.appendChild(title);
+        wrapper.appendChild(previewBox);
+        wrapper.appendChild(toggleBtn);
+        wrapper.appendChild(fullContent);
+        container.appendChild(wrapper);
+      });
+
+      document.getElementById('historyModal').style.display = 'flex';
+    };
+
+    function closeHistory() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+  
     renderTasks();
     updateStudyTime();
     highlightAndProgress();
     setInterval(highlightAndProgress, 1000);
+
+    window.addEventListener('DOMContentLoaded', function () {
+    });
+
+
+
+    document.getElementById('date').onclick = () => {
+      document.getElementById('calendarModal').style.display = 'flex';
+    };
+
+    function closeCalendar() {
+      document.getElementById('calendarModal').style.display = 'none';
+    }
+
+    function generateCalendar() {
+      const calendarTitle = document.querySelector(".calendar-title");
+      const tbody = document.getElementById("calendarBody");
+      tbody.innerHTML = "";
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const today = now.getDate();
+
+      calendarTitle.innerHTML = `📅 ${year}年${month + 1}月`;
+
+      const firstDay = new Date(year, month, 1);
+      const firstWeekday = (firstDay.getDay() + 6) % 7; // 周一为一周起始
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let row = document.createElement("tr");
+      for (let i = 0; i < firstWeekday; i++) {
+        row.appendChild(document.createElement("td"));
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, month, d);
+        const td = document.createElement("td");
+        td.textContent = d;
+
+        if (d === today) td.classList.add("today");
+        if (date.getDay() === 0 || date.getDay() === 6) td.classList.add("weekend");
+
+        row.appendChild(td);
+
+        if ((firstWeekday + d) % 7 === 0 || d === daysInMonth) {
+          tbody.appendChild(row);
+          row = document.createElement("tr");
+        }
+      }
+    }
+
+
+    document.getElementById("date").onclick = () => {
+      generateCalendar();
+      document.getElementById("calendarModal").style.display = "flex";
+    };
+
+    function closeCalendar() {
+      document.getElementById("calendarModal").style.display = "none";
+    }
+
+    function openCalendar() {
+      document.getElementById('calendarModal').style.display = 'flex';
+      generateCalendar();
+    }
+    function closeCalendar() {
+      document.getElementById('calendarModal').style.display = 'none';
+    }
+
+    function generateCalendar() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth(); // 0-based
+      const firstDay = new Date(year, month, 1).getDay(); // 周几
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const tbody = document.getElementById('calendarBody');
+      tbody.innerHTML = '';
+
+      let row = document.createElement('tr');
+      for (let i = 0; i < firstDay; i++) row.appendChild(document.createElement('td'));
+      for (let day = 1; day <= daysInMonth; day++) {
+        if (row.children.length === 7) {
+          tbody.appendChild(row);
+          row = document.createElement('tr');
+        }
+        const td = document.createElement('td');
+        td.textContent = day;
+        row.appendChild(td);
+      }
+      tbody.appendChild(row);
+    }
+    
   </script>
+
+
+  <div class="modal" id="calendarModal">
+    <div class="calendar-card">
+      <h3 class="calendar-title">📅 当前月份</h3>
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th>
+          </tr>
+        </thead>
+        <tbody id="calendarBody"></tbody>
+      </table>
+      <button onclick="closeCalendar()">关闭</button>
+    </div>
+  </div>
 </body>
 </html>
