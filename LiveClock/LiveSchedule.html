@@ -379,14 +379,18 @@
     }
 
     .calendar-table td {
-      width: 36px;
-      height: 36px;
-      line-height: 36px;
-      border-radius: 8px;
+      width: 44px;
+      height: 44px;
+      vertical-align: middle;
+      text-align: center;
       font-size: 15px;
+      line-height: 44px;
+      border-radius: 8px;
       color: #333;
       transition: background 0.3s ease;
+      box-sizing: border-box;
     }
+
 
     .calendar-table td.today {
       background: #ffd866;
@@ -457,7 +461,67 @@
       border-radius: 6px;
     }
 
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
 
+    .calendar-title-text {
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .calendar-title-text:hover {
+      color: #e58b27;
+      transform: scale(1.05);
+      text-decoration: underline;
+    }
+
+    .calendar-nav {
+      background: #f06292;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      width: 36px;
+      height: 36px;
+      display: flex;                /* ✅ 变成 Flex 容器 */
+      justify-content: center;      /* ✅ 水平居中 */
+      align-items: center;          /* ✅ 垂直居中 */
+      font-size: 20px;
+      font-weight: bold;
+      padding: 0;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+
+    .calendar-nav:hover {
+      background: #e91e63;
+      transform: scale(1.1);
+    }
+    .bubble-tip {
+      position: absolute;
+      background-color: #333;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translate(-50%, -150%);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .bubble-tip.show {
+      opacity: 1;
+      transform: translate(-50%, -180%);
+    }
 
   </style>  
 </head>
@@ -508,7 +572,9 @@
     document.getElementById('date').textContent = new Date().toLocaleDateString('zh-CN', {
       year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
     }).replace(/(周[一二三四五六日])$/, ' $1');
-  
+    
+    let lastRenderedDateStr = new Date().toDateString();
+
     const historyKey = 'taskHistory';
     const lastDateKey = 'lastOpenedDate';
     const todayStr = new Date().toLocaleDateString();
@@ -793,49 +859,8 @@
       document.getElementById('calendarModal').style.display = 'none';
     }
 
-    function generateCalendar() {
-      const calendarTitle = document.querySelector(".calendar-title");
-      const tbody = document.getElementById("calendarBody");
-      tbody.innerHTML = "";
 
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth();
-      const today = now.getDate();
-
-      calendarTitle.innerHTML = `📅 ${year}年${month + 1}月`;
-
-      const firstDay = new Date(year, month, 1);
-      const firstWeekday = (firstDay.getDay() + 6) % 7; // 周一为一周起始
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      let row = document.createElement("tr");
-      for (let i = 0; i < firstWeekday; i++) {
-        row.appendChild(document.createElement("td"));
-      }
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(year, month, d);
-        const td = document.createElement("td");
-        td.textContent = d;
-
-        if (d === today) td.classList.add("today");
-        if (date.getDay() === 0 || date.getDay() === 6) td.classList.add("weekend");
-
-        row.appendChild(td);
-
-        if ((firstWeekday + d) % 7 === 0 || d === daysInMonth) {
-          tbody.appendChild(row);
-          row = document.createElement("tr");
-        }
-      }
-    }
-
-
-    document.getElementById("date").onclick = () => {
-      generateCalendar();
-      document.getElementById("calendarModal").style.display = "flex";
-    };
+    document.getElementById("date").onclick = openCalendar;
 
     function closeCalendar() {
       document.getElementById("calendarModal").style.display = "none";
@@ -849,40 +874,142 @@
       document.getElementById('calendarModal').style.display = 'none';
     }
 
-    function generateCalendar() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth(); // 0-based
-      const firstDay = new Date(year, month, 1).getDay(); // 周几
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const tbody = document.getElementById('calendarBody');
-      tbody.innerHTML = '';
+    let calendarYear, calendarMonth;
 
-      let row = document.createElement('tr');
-      for (let i = 0; i < firstDay; i++) row.appendChild(document.createElement('td'));
-      for (let day = 1; day <= daysInMonth; day++) {
-        if (row.children.length === 7) {
-          tbody.appendChild(row);
-          row = document.createElement('tr');
-        }
-        const td = document.createElement('td');
-        td.textContent = day;
-        row.appendChild(td);
+    function generateCalendar(year, month) {
+      const today = new Date();
+      const isThisMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      const firstDay = new Date(year, month, 1);
+      const firstWeekday = (firstDay.getDay() + 6) % 7; // 周一为一周起点
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      //document.querySelector(".calendar-title").innerHTML = `📅 ${year}年${month + 1}月`;
+      //document.querySelector(".calendar-title").innerHTML = `<span class="calendar-title-text" onclick="goToThisMonth()">📅 ${year}年${month + 1}月</span>`;
+      document.getElementById("calendarMonthText").textContent = `${year}年${month + 1}月`;
+      const tbody = document.getElementById("calendarBody");
+      tbody.innerHTML = "";
+
+      let row = document.createElement("tr");
+      for (let i = 0; i < firstWeekday; i++) {
+        row.appendChild(document.createElement("td"));
       }
-      tbody.appendChild(row);
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const td = document.createElement("td");
+        td.textContent = d;
+
+        if (isThisMonth && d === today.getDate()) td.classList.add("today");
+        const weekDay = (firstWeekday + d - 1) % 7;
+        if (weekDay === 5 || weekDay === 6) td.classList.add("weekend");
+
+        row.appendChild(td);
+
+        if ((firstWeekday + d) % 7 === 0 || d === daysInMonth) {
+          tbody.appendChild(row);
+          row = document.createElement("tr");
+        }
+      }
     }
-    
+
+    function openCalendar() {
+      const now = new Date();
+      calendarYear = now.getFullYear();
+      calendarMonth = now.getMonth();
+      generateCalendar(calendarYear, calendarMonth);
+      document.getElementById("calendarModal").style.display = "flex";
+    }
+
+    function closeCalendar() {
+      document.getElementById("calendarModal").style.display = "none";
+    }
+
+    function prevMonth() {
+      if (calendarMonth === 0) {
+        calendarMonth = 11;
+        calendarYear--;
+      } else {
+        calendarMonth--;
+      }
+      generateCalendar(calendarYear, calendarMonth);
+    }
+
+    function nextMonth() {
+      if (calendarMonth === 11) {
+        calendarMonth = 0;
+        calendarYear++;
+      } else {
+        calendarMonth++;
+      }
+      generateCalendar(calendarYear, calendarMonth);
+    }
+
+    function goToThisMonth() {
+      const now = new Date();
+      calendarYear = now.getFullYear();
+      calendarMonth = now.getMonth();
+      generateCalendar(calendarYear, calendarMonth);
+
+      const titleEl = document.querySelector('.calendar-title-text');
+      showBubbleTip(titleEl, "已回到本月");
+    }
+
+
+    function showBubbleTip(targetElement, message, duration = 2000) {
+      const bubble = document.createElement("div");
+      bubble.className = "bubble-tip";
+      bubble.textContent = message;
+
+      // 添加到 body 中
+      document.body.appendChild(bubble);
+
+      // 计算目标位置（以元素中心为参考）
+      const rect = targetElement.getBoundingClientRect();
+      bubble.style.left = `${rect.left + rect.width / 2}px`;
+      bubble.style.top = `${rect.top}px`;
+
+      // 强制触发动画
+      requestAnimationFrame(() => {
+        bubble.classList.add("show");
+      });
+
+      // 移除提示
+      setTimeout(() => {
+        bubble.classList.remove("show");
+        setTimeout(() => bubble.remove(), 300);
+      }, duration);
+    }
+
+    setInterval(() => {
+      const now = new Date();
+      const newDateStr = now.toDateString();
+      if (newDateStr !== lastRenderedDateStr) {
+        lastRenderedDateStr = newDateStr;
+        const current = new Date();
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        calendarYear = year;
+        calendarMonth = month;
+        generateCalendar(year, month);
+      }
+    }, 60000); // 每分钟检查一次
+
   </script>
 
 
   <div class="modal" id="calendarModal">
     <div class="calendar-card">
-      <h3 class="calendar-title">📅 当前月份</h3>
+      <div class="calendar-header">
+        <button class="calendar-nav" onclick="prevMonth()">◀</button>
+        <h3 class="calendar-title">
+          <span class="calendar-title-text" onclick="goToThisMonth()" title="点击回到本月">📅 <span id="calendarMonthText">2025年7月</span></span>
+        </h3>
+        <button class="calendar-nav" onclick="nextMonth()">▶</button>
+      </div>
+      
       <table class="calendar-table">
         <thead>
-          <tr>
-            <th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th>
-          </tr>
+          <tr><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th></tr>
         </thead>
         <tbody id="calendarBody"></tbody>
       </table>
