@@ -523,6 +523,31 @@
       transform: translate(-50%, -180%);
     }
 
+    @keyframes explode {
+      0% {
+        transform: scale(0.3);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(3);
+        opacity: 0;
+      }
+    }
+
+    .firework {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffec99, #f77, #38f);
+      animation: explode 1200ms ease-out forwards;
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: screen;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+    }
+
+
   </style>  
 </head>
 <body>
@@ -631,6 +656,8 @@
       if (total > 0 && done === total) {
         counter.style.color = '#b8860b';
         counter.style.fontWeight = 'bold';
+        // ✅ 添加触发烟花
+        triggerFireworks();
       } else {
         counter.style.color = '';
         counter.style.fontWeight = '';
@@ -727,9 +754,23 @@
   
     function saveTodayToHistory() {
       const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
-      history[todayStr] = localStorage.getItem('taskInput') || '';
+      const rawInput = localStorage.getItem('taskInput') || '';
+      const lines = rawInput.trim().split('\n');
+
+      const enrichedLines = lines.map(line => {
+        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
+        if (match) {
+          const key = 'note-' + match[1] + '-' + match[2];
+          const note = localStorage.getItem(key);
+          return note ? `${line} ##备注## ${note}` : line;
+        }
+        return line;
+      });
+
+      history[todayStr] = enrichedLines.join('\n');
       localStorage.setItem(historyKey, JSON.stringify(history));
     }
+
   
     document.getElementById('editBtn').onclick = openTaskEditor;
     document.getElementById('free-note').value = localStorage.getItem('freeNote') || '';
@@ -739,14 +780,34 @@
   
     const lastDate = localStorage.getItem(lastDateKey);
     if (lastDate !== todayStr) {
+      const prevTasks = localStorage.getItem('taskInput');
       const history = JSON.parse(localStorage.getItem(historyKey) || '{}');
-      if (localStorage.getItem('taskInput')) {
-        history[lastDate || todayStr] = localStorage.getItem('taskInput');
+
+      if (prevTasks) {
+        const lines = prevTasks.trim().split('\n').map(line => {
+          const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+          if (match) {
+            const noteKey = `note-${match[1]}-${match[2]}`;
+            const note = localStorage.getItem(noteKey);
+            return note ? `${line} ##备注## ${note}` : line;
+          }
+          return line;
+        });
+        history[lastDate || todayStr] = lines.join('\n');
         localStorage.setItem(historyKey, JSON.stringify(history));
       }
+
       localStorage.setItem('taskInput', '');
+      localStorage.setItem('freeNote', '');
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('done-') || key.startsWith('note-')) {
+          localStorage.removeItem(key);
+        }
+      });
+
       localStorage.setItem(lastDateKey, todayStr);
     }
+
   
     document.getElementById('historyBtn').onclick = () => {
       const container = document.getElementById('historyContent');
@@ -785,15 +846,38 @@
       }
 
       title.textContent = `${date}（已完成：${done}/${total}；已学习：${formatTime(seconds)}）`;
+      wrapper.appendChild(title); // ✅ 加上这行
 
+      const fullContent = document.createElement('pre');
+      fullContent.className = 'history-full-text';
+
+      lines.forEach(line => {
+        const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
+        const div = document.createElement('div');
+        div.className = 'history-line';
+
+        if (match) {
+          const key = `done-${match[1]}-${match[2]}-${date}`;
+          const isDone = localStorage.getItem(key) === 'true';
+          if (line.includes('##备注##')) {
+            const [taskPart, note] = line.split('##备注##');
+            div.textContent = isDone ? `✔️ ${taskPart.trim()}（备注：${note.trim()}）` : `${taskPart.trim()}（备注：${note.trim()}）`;
+          } else {
+            div.textContent = isDone ? `✔️ ${line}` : line;
+          }
+          if (isDone) div.classList.add('done');
+        } else {
+          div.textContent = line;
+        }
+
+        fullContent.appendChild(div);
+      });
+
+      if (lines.length > 2) {
         const previewBox = document.createElement('pre');
-        previewBox.textContent = previewText;
         previewBox.className = 'history-preview-text';
 
-        const fullContent = document.createElement('pre');
-        const fullLines = fullText.trim().split('\n');
-        fullContent.innerHTML = '';
-        fullLines.forEach(line => {
+        lines.slice(0, 2).forEach(line => {
           const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})\s+(.+)/);
           const div = document.createElement('div');
           div.className = 'history-line';
@@ -801,15 +885,28 @@
           if (match) {
             const key = `done-${match[1]}-${match[2]}-${date}`;
             const isDone = localStorage.getItem(key) === 'true';
-            div.textContent = isDone ? `✔ ${line}` : line;
+            if (line.includes('##备注##')) {
+              const [taskPart, note] = line.split('##备注##');
+              div.textContent = isDone ? `✔️ ${taskPart.trim()}（备注：${note.trim()}）` : `${taskPart.trim()}（备注：${note.trim()}）`;
+            } else {
+              div.textContent = isDone ? `✔️ ${line}` : line;
+            }
             if (isDone) div.classList.add('done');
           } else {
-            div.textContent = line; // 非任务格式
+            div.textContent = line;
           }
 
-          fullContent.appendChild(div);
+          previewBox.appendChild(div);
         });
-        fullContent.className = 'history-full-text';
+
+        // 添加 "..." 标志
+        const ellipsis = document.createElement('div');
+        ellipsis.textContent = '...';
+        ellipsis.style.color = '#999';
+        ellipsis.style.marginTop = '4px';
+        previewBox.appendChild(ellipsis);
+
+
         fullContent.style.display = 'none';
 
         const toggleBtn = document.createElement('span');
@@ -827,12 +924,145 @@
           toggleBtn.textContent = isOpen ? '▼ 展开' : '▲ 收起';
         };
 
-        wrapper.appendChild(title);
         wrapper.appendChild(previewBox);
         wrapper.appendChild(toggleBtn);
-        wrapper.appendChild(fullContent);
-        container.appendChild(wrapper);
+      }
+
+      wrapper.appendChild(fullContent);
+      container.appendChild(wrapper);
       });
+
+
+      // 新增导出按钮
+      const exportBtn = document.createElement('button');
+      exportBtn.textContent = '导出为TXT文件';
+      exportBtn.style.marginTop = '20px';
+      exportBtn.onclick = () => {
+        const history = JSON.parse(localStorage.getItem('taskHistory') || '{}');
+        const keys = Object.keys(history).sort((a, b) => new Date(b) - new Date(a));
+
+        let content = '';
+        keys.forEach(date => {
+          const dateObj = new Date(date);
+          const weekday = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateObj.getDay()];
+          const lines = history[date].trim().split('\n');
+          let total = 0, done = 0;
+          lines.forEach(line => {
+            const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            if (match) {
+              total++;
+              const key = `done-${match[1]}-${match[2]}-${date}`;
+              if (localStorage.getItem(key) === 'true') done++;
+            }
+          });
+
+          const seconds = parseInt(localStorage.getItem('studySeconds-' + date) || '0');
+          const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+          const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+          const s = String(seconds % 60).padStart(2, '0');
+          const timeStr = `${h}:${m}:${s}`;
+          content += `【${date} ${weekday}】（已完成：${done}/${total}；已学习：${timeStr}）\n`;
+
+          //const lines = history[date].trim().split('\n');
+
+          lines.forEach(line => {
+            const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            let isDone = false;
+            if (match) {
+              const key = `done-${match[1]}-${match[2]}-${date}`;
+              isDone = localStorage.getItem(key) === 'true';
+            }
+
+            if (line.includes('##备注##')) {
+              const [taskPart, note] = line.split('##备注##');
+              content += `${isDone ? '✔️ ' : ''}${taskPart.trim()}（备注：${note.trim()}）\n`;
+            } else {
+              content += `${isDone ? '✔️ ' : ''}${line.trim()}\n`;
+            }
+          });
+
+          content += '\n';
+        });
+
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const timestamp = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+        a.download = `时间表历史记录_${timestamp}.txt`;
+        
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showBubbleTip(exportBtn, '已导出为TXT文件');
+      };
+
+
+
+
+      container.appendChild(exportBtn);
+      // 新增复制按钮
+      const copyBtn = document.createElement('button');
+      copyBtn.textContent = '复制内容';
+      copyBtn.style.marginLeft = '12px';
+      copyBtn.onclick = () => {
+        const history = JSON.parse(localStorage.getItem('taskHistory') || '{}');
+        const keys = Object.keys(history).sort((a, b) => new Date(b) - new Date(a));
+
+        let content = '';
+        keys.forEach(date => {
+          const dateObj = new Date(date);
+          const weekday = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][dateObj.getDay()];
+          const lines = history[date].trim().split('\n');
+          let total = 0, done = 0;
+          lines.forEach(line => {
+            const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            if (match) {
+              total++;
+              const key = `done-${match[1]}-${match[2]}-${date}`;
+              if (localStorage.getItem(key) === 'true') done++;
+            }
+          });
+
+          const seconds = parseInt(localStorage.getItem('studySeconds-' + date) || '0');
+          const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+          const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+          const s = String(seconds % 60).padStart(2, '0');
+          const timeStr = `${h}:${m}:${s}`;
+          content += `【${date} ${weekday}】（已完成：${done}/${total}；已学习：${timeStr}）\n`;
+
+          lines.forEach(line => {
+            const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            let isDone = false;
+            if (match) {
+              const key = `done-${match[1]}-${match[2]}-${date}`;
+              isDone = localStorage.getItem(key) === 'true';
+            }
+
+            if (line.includes('##备注##')) {
+              const [taskPart, note] = line.split('##备注##');
+              content += `${isDone ? '✔️ ' : ''}${taskPart.trim()}（备注：${note.trim()}）\n`;
+            } else {
+              content += `${isDone ? '✔️ ' : ''}${line.trim()}\n`;
+            }
+          });
+
+          content += '\n';
+        });
+
+        // ✅ 复制到剪贴板
+        navigator.clipboard.writeText(content).then(() => {
+          showBubbleTip(copyBtn, '已复制到剪贴板');
+        }).catch(err => {
+          alert('复制失败：' + err);
+        });
+      };
+
+      container.appendChild(copyBtn);
+
 
       document.getElementById('historyModal').style.display = 'flex';
     };
@@ -851,9 +1081,9 @@
 
 
 
-    document.getElementById('date').onclick = () => {
-      document.getElementById('calendarModal').style.display = 'flex';
-    };
+    //document.getElementById('date').onclick = () => {
+      //document.getElementById('calendarModal').style.display = 'flex';
+    //};
 
     function closeCalendar() {
       document.getElementById('calendarModal').style.display = 'none';
@@ -983,19 +1213,95 @@
     setInterval(() => {
       const now = new Date();
       const newDateStr = now.toDateString();
+      const todayStr = now.toLocaleDateString();
+
       if (newDateStr !== lastRenderedDateStr) {
         lastRenderedDateStr = newDateStr;
-        const current = new Date();
-        const year = current.getFullYear();
-        const month = current.getMonth();
+
+        // ✅ 更新顶部彩色日期
+        document.getElementById('date').textContent = now.toLocaleDateString('zh-CN', {
+          year: 'numeric', month: 'numeric', day: 'numeric', weekday: 'short'
+        }).replace(/(周[一二三四五六日])$/, ' $1');
+
+        // ✅ 保存昨天的任务到历史记录（带备注）
+        const prevDate = localStorage.getItem('lastOpenedDate');
+        const prevTasks = localStorage.getItem('taskInput');
+        const history = JSON.parse(localStorage.getItem('taskHistory') || '{}');
+
+        if (prevTasks) {
+          const lines = prevTasks.trim().split('\n').map(line => {
+            const match = line.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+            if (match) {
+              const noteKey = `note-${match[1]}-${match[2]}`;
+              const note = localStorage.getItem(noteKey);
+              return note ? `${line}（备注：${note}）` : line;
+            }
+            return line;
+          });
+          history[prevDate || todayStr] = lines.join('\n');
+          localStorage.setItem('taskHistory', JSON.stringify(history));
+        }
+
+        // ✅ 清空任务输入框、显示区域、备注、完成状态
+        localStorage.setItem('taskInput', '');
+        localStorage.setItem('freeNote', '');
+        document.getElementById('free-note').value = '';
+        document.getElementById('taskInput').value = '';
+        document.getElementById('taskList').innerHTML = '';
+
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('done-') || key.startsWith('note-')) {
+            localStorage.removeItem(key);
+          }
+        });
+
+        // ✅ 更新日期标记
+        localStorage.setItem('lastOpenedDate', todayStr);
+
+        // ✅ 刷新任务与计数器
+        renderTasks();
+        updateTaskCounts();
+        updateStudyTime();
+
+        // ✅ 刷新日历
+        const year = now.getFullYear();
+        const month = now.getMonth();
         calendarYear = year;
         calendarMonth = month;
         generateCalendar(year, month);
       }
-    }, 60000); // 每分钟检查一次
+    }, 60000);  // 每分钟检测是否换天
+
+    function triggerFireworks() {
+      const container = document.getElementById("firework-container");
+      container.innerHTML = '';
+      container.style.display = "block";
+
+      const colors = ['#ffec99', '#f77', '#7cf', '#aff', '#fc9', '#f9f', '#fff'];
+
+      const launch = () => {
+        for (let i = 0; i < 25; i++) {
+          const firework = document.createElement("div");
+          firework.className = "firework";
+          firework.style.left = Math.random() * 100 + "vw";
+          firework.style.top = Math.random() * 100 + "vh";
+          const c = colors[Math.floor(Math.random() * colors.length)];
+          firework.style.background = `radial-gradient(circle, ${c}, #0000)`;
+          container.appendChild(firework);
+        }
+      };
+
+      // 🔁 持续三秒：每0.5秒爆炸一次
+      launch();
+      const interval = setInterval(launch, 500);
+      setTimeout(() => {
+        clearInterval(interval);
+        container.style.display = "none";
+      }, 3500);
+    }
+
 
   </script>
-
 
   <div class="modal" id="calendarModal">
     <div class="calendar-card">
@@ -1016,5 +1322,8 @@
       <button onclick="closeCalendar()">关闭</button>
     </div>
   </div>
+
+  <div id="firework-container" style="pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:none;"></div>
+
 </body>
 </html>
