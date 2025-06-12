@@ -465,8 +465,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
-      padding: 0 8px;
+      padding: 6px 12px; /* ✅ 高度更紧凑 */
+      border-bottom: 1px solid #eee;
+      margin-bottom: 6px;
     }
 
     .calendar-title-text {
@@ -1175,10 +1176,23 @@
     highlightAndProgress();
     setInterval(highlightAndProgress, 1000);
 
-    window.addEventListener('DOMContentLoaded', function () {
+    // ✅ 监听点击模糊背景区域关闭特定弹窗（日历 / 历史记录）
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) {
+          const id = modal.id;
+
+          if (id === 'calendarModal' || id === 'historyModal' || id === 'confirmDeleteModal') {
+            modal.style.display = 'none';
+          }
+
+          // 不处理 taskModal / noteModal，防止误点关闭
+        }
+      });
     });
 
-
+    window.addEventListener('DOMContentLoaded', function () {
+    });
 
     //document.getElementById('date').onclick = () => {
       //document.getElementById('calendarModal').style.display = 'flex';
@@ -1472,8 +1486,6 @@
         </thead>
         <tbody id="calendarBody"></tbody>
       </table>
-      <!-- 底部关闭按钮 -->
-      <button onclick="closeCalendar()">关闭</button>
     </div>    
   </div>
 
