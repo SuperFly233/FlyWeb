@@ -610,6 +610,33 @@
       transform: scale(1.05);
     }
 
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 10px;
+    }
+
+    .calendar-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .calendar-close {
+      font-size: 18px;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.3s ease, transform 0.2s ease;
+    }
+
+    .calendar-close:hover {
+      color: #e91e63;
+      transform: scale(1.2);
+    }
+
   </style>  
 </head>
 <body>
@@ -1257,30 +1284,35 @@
     }
 
 
-    function showBubbleTip(targetElement, message, duration = 2000) {
+    function showBubbleTip(targetElement, message, duration = 2000, fixedPosition = false) {
       const bubble = document.createElement("div");
       bubble.className = "bubble-tip";
       bubble.textContent = message;
 
-      // 添加到 body 中
       document.body.appendChild(bubble);
 
-      // ✅ 修正定位，加上滚动偏移量
-      const rect = targetElement.getBoundingClientRect();
-      bubble.style.left = `${rect.left + rect.width / 2 + window.scrollX}px`;
-      bubble.style.top = `${rect.top + window.scrollY - 10}px`; // 上移 10px 更自然
+      if (fixedPosition) {
+        // ✅ 页面整体居中偏上显示
+        bubble.style.position = "fixed";
+        bubble.style.left = "50%";
+        bubble.style.top = "20%";
+        bubble.style.transform = "translateX(-50%)";
+      } else {
+        const rect = targetElement.getBoundingClientRect();
+        bubble.style.left = `${rect.left + rect.width / 2 + window.scrollX}px`;
+        bubble.style.top = `${rect.top + window.scrollY - 3}px`;
+      }
 
-      // 强制触发动画
       requestAnimationFrame(() => {
         bubble.classList.add("show");
       });
 
-      // 移除提示
       setTimeout(() => {
         bubble.classList.remove("show");
         setTimeout(() => bubble.remove(), 300);
       }, duration);
     }
+
 
 
     setInterval(() => {
@@ -1389,30 +1421,30 @@
 
     function confirmDeleteYes() {
       if (!pendingDeleteDate) return;
-      // 删除历史记录
+      
+      const deletedDate = pendingDeleteDate;
+
       const history = JSON.parse(localStorage.getItem('taskHistory') || '{}');
-      delete history[pendingDeleteDate];
+      delete history[deletedDate];
       localStorage.setItem('taskHistory', JSON.stringify(history));
 
-      // 删除对应的 studySeconds 和 done/note 状态
-      localStorage.removeItem(`studySeconds-${pendingDeleteDate}`);
+      localStorage.removeItem(`studySeconds-${deletedDate}`);
       Object.keys(localStorage).forEach(key => {
-        if (key.includes(pendingDeleteDate) && (key.startsWith('done-') || key.startsWith('note-'))) {
+        if (key.includes(deletedDate) && (key.startsWith('done-') || key.startsWith('note-'))) {
           localStorage.removeItem(key);
         }
       });
 
-      // 关闭弹窗，刷新历史记录，提示 bubble
       closeConfirmDelete();
-      document.getElementById('historyBtn').click(); // 重新触发打开刷新
-      //showBubbleTip(pendingDeleteBtn, `已删除 ${pendingDeleteDate}`);
-      // ✅ 用 historyBtn 替代 pendingDeleteBtn 来确保元素还存在
+      document.getElementById('historyBtn').click();
+
+      // ✅ 延迟显示 Bubble
       setTimeout(() => {
         const historyBtn = document.getElementById('historyBtn');
-        showBubbleTip(historyBtn, `已删除 ${pendingDeleteDate}`);
-      }, 300);  // 等待历史界面刷新完成再显示
-
+        showBubbleTip(historyBtn, `已删除 ${deletedDate}`, 2000, true);
+      }, );
     }
+
 
 
 
@@ -1420,22 +1452,29 @@
 
   <div class="modal" id="calendarModal">
     <div class="calendar-card">
+      <!-- 顶部标题行 -->
       <div class="calendar-header">
+        <span class="calendar-title">📅 日历</span>
+        <span class="calendar-close" onclick="closeCalendar()">✖</span>
+      </div>
+      <!-- 月份切换行 -->
+      <div class="calendar-nav-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 8px;">
         <button class="calendar-nav" onclick="prevMonth()">◀</button>
-        <h3 class="calendar-title">
-          <span class="calendar-title-text" onclick="goToThisMonth()" title="点击回到本月">📅 <span id="calendarMonthText">2025年7月</span></span>
+        <h3 class="calendar-title-text" onclick="goToThisMonth()" title="点击回到本月">
+          <span id="calendarMonthText">2025年6月</span>
         </h3>
         <button class="calendar-nav" onclick="nextMonth()">▶</button>
       </div>
-      
+      <!-- 日历表格 -->
       <table class="calendar-table">
         <thead>
           <tr><th>一</th><th>二</th><th>三</th><th>四</th><th>五</th><th>六</th><th>日</th></tr>
         </thead>
         <tbody id="calendarBody"></tbody>
       </table>
+      <!-- 底部关闭按钮 -->
       <button onclick="closeCalendar()">关闭</button>
-    </div>
+    </div>    
   </div>
 
   <div id="firework-container" style="pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; display:none;"></div>
