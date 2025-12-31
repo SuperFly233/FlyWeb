@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#05060a" />
+  <title>跨年大屏时钟</title>
+  <style>
+    :root{
+      --bg0:#05060a;
+      --bg1:#0a0f2a;
+      --fg:#eef2ff;
+      --muted:rgba(238,242,255,.72);
+      --glass:rgba(255,255,255,.06);
+      --glass2:rgba(255,255,255,.10);
+      --stroke:rgba(255,255,255,.12);
+
+      --accent:#7c3aed;
+      --accent2:#22d3ee;
+      --accent3:#a3ff12;
+
+      --shadow: 0 20px 80px rgba(0,0,0,.45);
+      --radius: 22px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "PingFang SC", "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei", Arial, sans-serif;
+
+      --clockScale: 1;
+      --glow: 0 0 26px rgba(124,58,237,.35), 0 0 60px rgba(34,211,238,.18);
+    }
+
+    /* themes */
+    [data-theme="aurora"]{
+      --bg0:#04050b; --bg1:#071b2a; --accent:#7c3aed; --accent2:#22d3ee; --accent3:#a3ff12;
+      --glow: 0 0 30px rgba(34,211,238,.30), 0 0 70px rgba(124,58,237,.22);
+    }
+    [data-theme="neon"]{
+      --bg0:#05020a; --bg1:#120025; --accent:#ff4dd8; --accent2:#3bf0ff; --accent3:#ffe347;
+      --glow: 0 0 34px rgba(255,77,216,.28), 0 0 90px rgba(59,240,255,.18);
+    }
+    [data-theme="amber"]{
+      --bg0:#090806; --bg1:#1a1307; --accent:#ffb020; --accent2:#ff6b6b; --accent3:#4ade80;
+      --glow: 0 0 28px rgba(255,176,32,.22), 0 0 70px rgba(255,107,107,.14);
+    }
+    [data-theme="ice"]{
+      --bg0:#060b12; --bg1:#051a24; --accent:#60a5fa; --accent2:#22d3ee; --accent3:#f8fafc;
+      --glow: 0 0 28px rgba(96,165,250,.22), 0 0 70px rgba(34,211,238,.14);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; background: radial-gradient(1200px 800px at 20% 20%, rgba(124,58,237,.22), transparent 60%),
+                                     radial-gradient(1100px 700px at 80% 30%, rgba(34,211,238,.20), transparent 60%),
+                                     radial-gradient(900px 600px at 60% 85%, rgba(163,255,18,.10), transparent 55%),
+                                     linear-gradient(180deg, var(--bg0), var(--bg1));
+              color:var(--fg); font-family:var(--sans); overflow:hidden;}
+    body{position:relative}
+    .bg-anim{
+      position:absolute; inset:-40%;
+      background: radial-gradient(closest-side at 25% 30%, rgba(124,58,237,.22), transparent 65%),
+                  radial-gradient(closest-side at 75% 25%, rgba(34,211,238,.18), transparent 65%),
+                  radial-gradient(closest-side at 65% 80%, rgba(163,255,18,.10), transparent 68%);
+      filter: blur(40px) saturate(1.15);
+      animation: drift 18s ease-in-out infinite alternate;
+      opacity:.9;
+      pointer-events:none;
+      transform: translate3d(0,0,0);
+    }
+    @keyframes drift{
+      0%{transform: translate3d(-2%, -1%, 0) scale(1.03) rotate(-1deg)}
+      100%{transform: translate3d(2%, 1.5%, 0) scale(1.07) rotate(1deg)}
+    }
+
+    .wrap{
+      position:relative;
+      height:100%;
+      display:grid;
+      place-items:center;
+      padding: min(4vmin, 28px);
+    }
+
+    .panel{
+      width:min(1100px, 96vw);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: min(4vmin, 34px);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .panel::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: conic-gradient(from 120deg, rgba(124,58,237,.0), rgba(124,58,237,.20), rgba(34,211,238,.16), rgba(163,255,18,.10), rgba(124,58,237,.0));
+      filter: blur(18px);
+      opacity:.55;
+      pointer-events:none;
+      animation: spin 18s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .content{
+      position:relative;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: min(3.2vmin, 28px);
+      align-items:center;
+    }
+    @media (max-width: 880px){
+      .content{grid-template-columns: 1fr; gap: 18px}
+    }
+
+    .clockCard{
+      position:relative;
+      padding: min(3.2vmin, 26px);
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+
+    .ring{
+      position:absolute; inset:-2px;
+      border-radius: 20px;
+      pointer-events:none;
+      opacity:.95;
+      background:
+        radial-gradient(closest-side, rgba(0,0,0,.35), rgba(0,0,0,.65)),
+        conic-gradient(from -90deg, rgba(124,58,237,.85), rgba(34,211,238,.75), rgba(163,255,18,.45), rgba(124,58,237,.20));
+      mask: radial-gradient(closest-side, transparent 68%, #000 69%);
+      filter: blur(.2px);
+      mix-blend-mode: screen;
+    }
+    .ringMask{
+      position:absolute; inset:10px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      pointer-events:none;
+    }
+
+    .timeRow{
+      display:flex;
+      align-items:baseline;
+      gap: min(2.4vmin, 18px);
+      flex-wrap:wrap;
+      justify-content:center;
+      text-align:center;
+      transform: scale(var(--clockScale));
+      transform-origin: center;
+      filter: drop-shadow(var(--glow));
+    }
+
+    .time{
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .02em;
+      font-size: clamp(64px, 11vw, 150px);
+      line-height: 1;
+      font-weight: 800;
+      text-shadow: 0 0 22px rgba(255,255,255,.08);
+      white-space:nowrap;
+    }
+
+    .colon{
+      display:inline-block;
+      width:.42em;
+      text-align:center;
+      opacity:.92;
+      animation: blink 1s steps(1,end) infinite;
+    }
+    @keyframes blink{50%{opacity:.18}}
+
+    .sec{
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(18px, 2.8vw, 30px);
+      padding: 8px 12px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      backdrop-filter: blur(10px);
+    }
+
+    .date{
+      margin-top: 18px;
+      text-align:center;
+      font-size: clamp(18px, 2.6vw, 28px);
+      color: var(--muted);
+      letter-spacing: .02em;
+    }
+
+    .sub{
+      margin-top: 10px;
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      color: rgba(238,242,255,.70);
+      font-size: 14px;
+    }
+    .pill{
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(10px);
+    }
+    .pill strong{color:var(--fg); font-weight:700}
+
+    .side{
+      display:grid;
+      gap: 14px;
+      align-content:start;
+    }
+
+    .card{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      padding: 16px 16px;
+      position:relative;
+      overflow:hidden;
+    }
+    .card h3{
+      margin:0 0 10px 0;
+      font-size: 14px;
+      letter-spacing:.12em;
+      text-transform: uppercase;
+      color: rgba(238,242,255,.60);
+      font-weight:700;
+    }
+
+    .countdown{
+      display:grid;
+      gap: 10px;
+    }
+    .big{
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(22px, 3.4vw, 36px);
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .tiny{
+      color: rgba(238,242,255,.70);
+      font-size: 14px;
+      line-height:1.5;
+    }
+    .bar{
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,58,237,.90), rgba(34,211,238,.85), rgba(163,255,18,.55));
+      filter: saturate(1.1);
+      border-radius: 999px;
+      box-shadow: 0 0 18px rgba(34,211,238,.25);
+    }
+
+    .controls{
+      position:fixed;
+      right: 16px;
+      bottom: 16px;
+      display:flex;
+      gap: 10px;
+      flex-wrap:wrap;
+      align-items:center;
+      z-index: 30;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.35);
+      color: var(--fg);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      cursor:pointer;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      user-select:none;
+    }
+    .btn:hover{background: rgba(255,255,255,.08)}
+    .btn:active{transform: translateY(1px)}
+    .btn small{opacity:.7}
+    .btn.on{
+      border-color: rgba(34,211,238,.35);
+      box-shadow: 0 0 0 2px rgba(34,211,238,.12) inset;
+    }
+
+    .hud{
+      position:fixed;
+      left:16px;
+      bottom:16px;
+      z-index: 30;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: rgba(238,242,255,.75);
+      font-size: 12px;
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    .kbd{
+      font-family: var(--mono);
+      padding: 6px 8px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+
+    .toast{
+      position:fixed;
+      top: 18px;
+      left:50%;
+      transform: translateX(-50%);
+      z-index: 40;
+      padding: 12px 14px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.38);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: rgba(238,242,255,.88);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease, transform .25s ease;
+      box-shadow: var(--shadow);
+      white-space:nowrap;
+    }
+    .toast.show{opacity:1; transform: translateX(-50%) translateY(0)}
+    .toast.hide{opacity:0; transform: translateX(-50%) translateY(-6px)}
+
+    .celebrate{
+      position:fixed; inset:0;
+      display:grid;
+      place-items:center;
+      z-index: 50;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .35s ease;
+    }
+    .celebrate.show{opacity:1}
+    .celebrate .msg{
+      text-align:center;
+      padding: 22px 26px;
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.35);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      filter: drop-shadow(var(--glow));
+    }
+    .celebrate .msg .h{
+      font-size: clamp(34px, 6vw, 64px);
+      font-weight: 900;
+      letter-spacing: .02em;
+      margin:0 0 10px 0;
+    }
+    .celebrate .msg .p{
+      margin:0;
+      font-size: clamp(14px, 2.4vw, 20px);
+      color: rgba(238,242,255,.80);
+    }
+
+    canvas#confetti{
+      position:fixed; inset:0;
+      z-index: 45;
+      pointer-events:none;
+      opacity:0;
+      transition: opacity .35s ease;
+    }
+    canvas#confetti.show{opacity:1}
+
+    .cursor-hide{cursor:none}
+    .ui-hide .controls, .ui-hide .hud{opacity:0; transform: translateY(6px); pointer-events:none}
+    .ui-hide .toast{opacity:0}
+
+    .footer{
+      margin-top: 10px;
+      text-align:center;
+      color: rgba(238,242,255,.55);
+      font-size: 12px;
+    }
+
+    .miniGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 880px){
+      .miniGrid{grid-template-columns:1fr}
+    }
+    .mini{
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      padding: 12px 12px;
+    }
+    .mini .tz{
+      font-size:12px;
+      color: rgba(238,242,255,.65);
+      letter-spacing:.08em;
+    }
+    .mini .t{
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 22px;
+      font-weight:800;
+      margin-top: 4px;
+    }
+
+    .hint{
+      margin-top: 6px;
+      font-size: 12px;
+      color: rgba(238,242,255,.65);
+    }
+  </style>
+</head>
+
+<body data-theme="aurora">
+  <div class="bg-anim"></div>
+
+  <canvas id="confetti"></canvas>
+
+  <div class="celebrate" id="celebrate">
+    <div class="msg">
+      <p class="h" id="celebrateTitle">新年快乐</p>
+      <p class="p" id="celebrateSub">愿你今晚像烟花一样，亮得理直气壮</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="wrap">
+    <div class="panel">
+      <div class="content">
+        <div class="clockCard">
+          <div class="ring" id="dayRing"></div>
+          <div class="ringMask"></div>
+
+          <div class="timeRow" id="timeRow">
+            <div class="time" id="timeText">00:00</div>
+            <div class="sec" id="secText">00</div>
+          </div>
+
+          <div class="date" id="dateText">1月1日 星期四</div>
+
+          <div class="sub">
+            <div class="pill" id="greetPill">今晚：<strong id="greetText">跨年模式</strong></div>
+            <div class="pill">本地时间</div>
+            <div class="pill" id="yearPill">2026</div>
+          </div>
+
+          <div class="footer" id="footerText">按 F 全屏，按 Space 隐藏按钮，按 T 换主题</div>
+        </div>
+
+        <div class="side">
+          <div class="card">
+            <h3>倒计时</h3>
+            <div class="countdown">
+              <div class="big" id="countdownText">--</div>
+              <div class="tiny" id="countdownSub">--</div>
+              <div class="bar" aria-label="进度条"><i id="countdownBar"></i></div>
+              <div class="hint" id="midHint">小巧思：零点自动撒彩纸，声音需要你点一下授权</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>世界时间</h3>
+            <div class="miniGrid" id="worldGrid"></div>
+            <div class="hint">可在右下角切换显示与隐藏</div>
+          </div>
+
+          <div class="card">
+            <h3>状态</h3>
+            <div class="tiny" id="statusText">--</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hud" id="hud">
+    <span class="kbd">F 全屏</span>
+    <span class="kbd">T 主题</span>
+    <span class="kbd">S 秒</span>
+    <span class="kbd">C 倒计时</span>
+    <span class="kbd">W 常亮</span>
+    <span class="kbd">M 静音</span>
+    <span class="kbd">Space 隐藏UI</span>
+  </div>
+
+  <div class="controls" id="controls">
+    <button class="btn" id="btnFullscreen">全屏 <small>F</small></button>
+    <button class="btn" id="btnTheme">主题 <small>T</small></button>
+    <button class="btn on" id="btnSeconds">秒 <small>S</small></button>
+    <button class="btn on" id="btnCountdown">倒计时 <small>C</small></button>
+    <button class="btn on" id="btnWorld">世界时钟</button>
+    <button class="btn" id="btnWake">常亮 <small>W</small></button>
+    <button class="btn" id="btnSound">声音 <small>点我</small></button>
+    <button class="btn" id="btnMute">静音 <small>M</small></button>
+    <button class="btn" id="btnBigger">放大</button>
+    <button class="btn" id="btnSmaller">缩小</button>
+  </div>
+
+  <script>
+    (function(){
+      const $ = (id)=>document.getElementById(id);
+
+      const timeText = $("timeText");
+      const secText = $("secText");
+      const dateText = $("dateText");
+      const countdownText = $("countdownText");
+      const countdownSub = $("countdownSub");
+      const countdownBar = $("countdownBar");
+      const toast = $("toast");
+      const dayRing = $("dayRing");
+      const yearPill = $("yearPill");
+      const greetText = $("greetText");
+      const statusText = $("statusText");
+      const worldGrid = $("worldGrid");
+
+      const celebrate = $("celebrate");
+      const celebrateTitle = $("celebrateTitle");
+      const celebrateSub = $("celebrateSub");
+
+      const btnFullscreen = $("btnFullscreen");
+      const btnTheme = $("btnTheme");
+      const btnSeconds = $("btnSeconds");
+      const btnCountdown = $("btnCountdown");
+      const btnWorld = $("btnWorld");
+      const btnWake = $("btnWake");
+      const btnSound = $("btnSound");
+      const btnMute = $("btnMute");
+      const btnBigger = $("btnBigger");
+      const btnSmaller = $("btnSmaller");
+
+      const controls = $("controls");
+      const hud = $("hud");
+
+      const THEMES = ["aurora","neon","amber","ice"];
+      const WORLD_CLOCKS = [
+        {label:"Beijing", tz:"Asia/Shanghai"},
+        {label:"Tokyo", tz:"Asia/Tokyo"},
+        {label:"London", tz:"Europe/London"},
+        {label:"New York", tz:"America/New_York"}
+      ];
+
+      const store = {
+        get(k, d){ try{ const v = localStorage.getItem(k); return v===null? d : JSON.parse(v);}catch(e){ return d; } },
+        set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+      };
+
+      let showSeconds = store.get("showSeconds", true);
+      let showCountdown = store.get("showCountdown", true);
+      let showWorld = store.get("showWorld", true);
+      let themeIndex = store.get("themeIndex", 0) % THEMES.length;
+      let muted = store.get("muted", false);
+      let clockScale = store.get("clockScale", 1);
+
+      document.body.dataset.theme = THEMES[themeIndex];
+      document.documentElement.style.setProperty("--clockScale", String(clockScale));
+
+      btnSeconds.classList.toggle("on", showSeconds);
+      btnCountdown.classList.toggle("on", showCountdown);
+      btnWorld.classList.toggle("on", showWorld);
+      btnMute.classList.toggle("on", muted);
+
+      secText.style.display = showSeconds ? "inline-flex" : "none";
+
+      // Toast
+      let toastTimer = null;
+      function showToast(msg){
+        toast.textContent = msg;
+        toast.classList.remove("hide");
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(()=>{
+          toast.classList.remove("show");
+          toast.classList.add("hide");
+        }, 1600);
+      }
+
+      // Fullscreen
+      async function toggleFullscreen(){
+        try{
+          if (!document.fullscreenElement){
+            await document.documentElement.requestFullscreen();
+            showToast("已进入全屏");
+          } else {
+            await document.exitFullscreen();
+            showToast("已退出全屏");
+          }
+        }catch(e){
+          showToast("全屏失败，可能被浏览器限制");
+        }
+      }
+
+      // Wake Lock
+      let wakeLock = null;
+      async function toggleWakeLock(){
+        if (!("wakeLock" in navigator)){
+          showToast("此浏览器不支持常亮");
+          return;
+        }
+        try{
+          if (wakeLock){
+            await wakeLock.release();
+            wakeLock = null;
+            btnWake.classList.remove("on");
+            showToast("已关闭常亮");
+          } else {
+            wakeLock = await navigator.wakeLock.request("screen");
+            btnWake.classList.add("on");
+            showToast("已开启常亮");
+            wakeLock.addEventListener("release", ()=>{
+              btnWake.classList.remove("on");
+              wakeLock = null;
+            });
+          }
+        }catch(e){
+          showToast("常亮失败，试试先点全屏");
+        }
+      }
+      document.addEventListener("visibilitychange", ()=>{
+        // 可见性变化时，某些浏览器会自动释放 wakelock
+        if (document.visibilityState === "visible" && store.get("wakeOn", false) && !wakeLock){
+          toggleWakeLock();
+        }
+      });
+
+      // Sound (WebAudio)
+      let audioCtx = null;
+      let soundArmed = false;
+      function ensureAudio(){
+        if (!audioCtx){
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      function beep(freq=880, dur=0.08, vol=0.03){
+        if (muted || !soundArmed) return;
+        ensureAudio();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = "sine";
+        o.frequency.value = freq;
+        g.gain.value = vol;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        o.stop(audioCtx.currentTime + dur);
+      }
+      function chime(){
+        // 简单和弦
+        beep(523.25, 0.14, 0.03);
+        setTimeout(()=>beep(659.25, 0.14, 0.03), 120);
+        setTimeout(()=>beep(783.99, 0.18, 0.03), 240);
+      }
+
+      btnSound.addEventListener("click", async ()=>{
+        try{
+          ensureAudio();
+          await audioCtx.resume();
+          soundArmed = true;
+          btnSound.classList.add("on");
+          showToast("声音已启用");
+          chime();
+        }catch(e){
+          showToast("声音启用失败");
+        }
+      });
+
+      // Confetti
+      const canvas = $("confetti");
+      const ctx = canvas.getContext("2d");
+      let confetti = [];
+      let confettiOn = false;
+
+      function resizeCanvas(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        canvas.width = Math.floor(window.innerWidth * dpr);
+        canvas.height = Math.floor(window.innerHeight * dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      function startConfetti(){
+        confettiOn = true;
+        canvas.classList.add("show");
+        const W = window.innerWidth, H = window.innerHeight;
+        confetti = [];
+        const n = Math.floor(Math.min(320, Math.max(180, W*H/9000)));
+        for (let i=0;i<n;i++){
+          confetti.push({
+            x: Math.random()*W,
+            y: -Math.random()*H,
+            vx: (Math.random()-0.5)*2.2,
+            vy: 2.6 + Math.random()*4.2,
+            r: 4 + Math.random()*6,
+            a: Math.random()*Math.PI*2,
+            va: (Math.random()-0.5)*0.25,
+            // 用渐变主题色做随机混合
+            c: i%3===0 ? "rgba(124,58,237,.85)" : (i%3===1 ? "rgba(34,211,238,.85)" : "rgba(163,255,18,.55)")
+          });
+        }
+        requestAnimationFrame(tickConfetti);
+      }
+
+      function stopConfetti(){
+        confettiOn = false;
+        canvas.classList.remove("show");
+      }
+
+      function tickConfetti(){
+        if (!confettiOn) return;
+        const W = window.innerWidth, H = window.innerHeight;
+        ctx.clearRect(0,0,W,H);
+        for (const p of confetti){
+          p.x += p.vx;
+          p.y += p.vy;
+          p.a += p.va;
+
+          if (p.y > H + 40){
+            p.y = -20;
+            p.x = Math.random()*W;
+          }
+          if (p.x < -40) p.x = W+40;
+          if (p.x > W+40) p.x = -40;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.a);
+          ctx.fillStyle = p.c;
+          ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r*0.7);
+          ctx.restore();
+        }
+        requestAnimationFrame(tickConfetti);
+      }
+
+      function setTheme(i){
+        themeIndex = (i + THEMES.length) % THEMES.length;
+        document.body.dataset.theme = THEMES[themeIndex];
+        store.set("themeIndex", themeIndex);
+        showToast("主题：" + THEMES[themeIndex]);
+      }
+
+      function pad2(n){ return String(n).padStart(2,"0"); }
+
+      function formatDateCN(d){
+        const wd = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"][d.getDay()];
+        return `${d.getMonth()+1}月${d.getDate()}日  ${wd}`;
+      }
+
+      function getNextNewYearTarget(now){
+        // 目标：最近的 1月1日 00:00:00
+        const y = now.getFullYear();
+        const next = new Date(y+1, 0, 1, 0, 0, 0, 0);
+        return next;
+      }
+
+      function getDayProgress(now){
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0,0,0,0).getTime();
+        const end   = start + 24*60*60*1000;
+        return (now.getTime() - start) / (end - start);
+      }
+
+      function getYearProgress(now){
+        const start = new Date(now.getFullYear(), 0, 1, 0,0,0,0).getTime();
+        const end   = new Date(now.getFullYear()+1, 0, 1, 0,0,0,0).getTime();
+        return (now.getTime() - start) / (end - start);
+      }
+
+      function setUIFlags(){
+        secText.style.display = showSeconds ? "inline-flex" : "none";
+        btnSeconds.classList.toggle("on", showSeconds);
+        btnCountdown.classList.toggle("on", showCountdown);
+        btnWorld.classList.toggle("on", showWorld);
+        btnMute.classList.toggle("on", muted);
+
+        store.set("showSeconds", showSeconds);
+        store.set("showCountdown", showCountdown);
+        store.set("showWorld", showWorld);
+        store.set("muted", muted);
+
+        // side card显示控制
+        countdownText.closest(".card").style.display = showCountdown ? "" : "none";
+        worldGrid.closest(".card").style.display = showWorld ? "" : "none";
+      }
+
+      function renderWorld(now){
+        worldGrid.innerHTML = "";
+        const fmt = (tz)=>new Intl.DateTimeFormat("en-GB", {
+          timeZone: tz, hour12: false, hour: "2-digit", minute:"2-digit", second:"2-digit"
+        }).format(now);
+
+        for (const w of WORLD_CLOCKS){
+          const div = document.createElement("div");
+          div.className = "mini";
+          div.innerHTML = `<div class="tz">${w.label} · ${w.tz}</div><div class="t">${fmt(w.tz)}</div>`;
+          worldGrid.appendChild(div);
+        }
+      }
+
+      // Status: battery + network + fps-like tick
+      let lastTick = performance.now(), frames = 0, fps = 0;
+      let batteryObj = null;
+      async function initBattery(){
+        try{
+          if ("getBattery" in navigator){
+            batteryObj = await navigator.getBattery();
+          }
+        }catch(e){}
+      }
+      initBattery();
+
+      function renderStatus(now){
+        const online = navigator.onLine ? "在线" : "离线";
+        const lang = navigator.language || "—";
+        const scale = Math.round(clockScale*100) + "%";
+
+        let bat = "—";
+        let charging = "";
+        if (batteryObj){
+          bat = Math.round(batteryObj.level * 100) + "%";
+          charging = batteryObj.charging ? " 充电中" : "";
+        }
+
+        statusText.textContent =
+          `网络：${online} ｜ 电量：${bat}${charging} ｜ 显示：${scale} ｜ 语言：${lang} ｜ 刷新：${fps}fps`;
+      }
+
+      function getGreeting(now){
+        const h = now.getHours();
+        if (h < 6) return "深夜还醒着";
+        if (h < 11) return "上午在线";
+        if (h < 14) return "中午别太卷";
+        if (h < 18) return "下午继续";
+        if (h < 22) return "今晚开场";
+        return "跨年模式";
+      }
+
+      let lastSecond = -1;
+      let celebratedAt = null;
+
+      function update(){
+        const now = new Date();
+
+        const h = pad2(now.getHours());
+        const m = pad2(now.getMinutes());
+        const s = pad2(now.getSeconds());
+
+        // 主时钟
+        timeText.innerHTML = `${h}<span class="colon">:</span>${m}`;
+        secText.textContent = s;
+        dateText.textContent = formatDateCN(now);
+
+        // 小信息
+        greetText.textContent = getGreeting(now);
+        yearPill.textContent = String(now.getFullYear());
+
+        // 日进度环
+        const dp = Math.max(0, Math.min(1, getDayProgress(now)));
+        const deg = Math.round(dp * 360);
+        dayRing.style.background =
+          `radial-gradient(closest-side, rgba(0,0,0,.35), rgba(0,0,0,.65)),
+           conic-gradient(from -90deg,
+             rgba(34,211,238,.95) 0deg,
+             rgba(124,58,237,.90) ${deg}deg,
+             rgba(255,255,255,.10) ${deg}deg,
+             rgba(255,255,255,.10) 360deg)`;
+
+        // 倒计时：到最近的元旦
+        if (showCountdown){
+          const target = getNextNewYearTarget(now);
+          const diff = target.getTime() - now.getTime();
+          const nextYear = target.getFullYear();
+
+          if (diff > 0){
+            const totalSec = Math.floor(diff/1000);
+            const dd = Math.floor(totalSec / 86400);
+            const hh = Math.floor((totalSec % 86400) / 3600);
+            const mm = Math.floor((totalSec % 3600) / 60);
+            const ss = totalSec % 60;
+
+            const partDay = dd>0 ? `${dd}天 ` : "";
+            countdownText.textContent = `距 ${nextYear} 还有 ${partDay}${pad2(hh)}:${pad2(mm)}:${pad2(ss)}`;
+
+            const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23,59,59,999);
+            const leftToday = dayEnd.getTime() - now.getTime();
+            const p = 1 - Math.max(0, Math.min(1, leftToday / (24*60*60*1000)));
+            countdownBar.style.width = `${Math.round(p*100)}%`;
+
+            countdownSub.textContent = `今天进度 ${Math.round(p*100)}% ｜ 年进度 ${Math.round(getYearProgress(now)*100)}%`;
+          } else {
+            countdownText.textContent = `欢迎来到 ${now.getFullYear()} 🎉`;
+            countdownSub.textContent = "新的一年，先把今晚过爽";
+            countdownBar.style.width = "100%";
+          }
+        }
+
+        // 每秒的小音效
+        const sec = now.getSeconds();
+        if (sec !== lastSecond){
+          lastSecond = sec;
+          if (sec === 0) {
+            // 整分钟轻提示
+            beep(740, 0.05, 0.018);
+          } else if (sec % 10 === 0){
+            beep(660, 0.04, 0.012);
+          }
+        }
+
+        // 零点庆祝：1月1日 00:00:00 触发
+        const isMidnight = (now.getMonth() === 0 && now.getDate() === 1 && now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() <= 2);
+        const key = now.getFullYear() + "-NY";
+        if (isMidnight && celebratedAt !== key){
+          celebratedAt = key;
+          celebrateTitle.textContent = `${now.getFullYear()} 新年快乐`;
+          celebrateSub.textContent = "今晚就别讲道理了，讲痛快";
+          celebrate.classList.add("show");
+          startConfetti();
+          chime();
+          setTimeout(()=>beep(988, 0.10, 0.03), 380);
+          setTimeout(()=>beep(1175, 0.14, 0.03), 580);
+
+          setTimeout(()=>{
+            celebrate.classList.remove("show");
+            stopConfetti();
+          }, 12000);
+        }
+
+        // 世界时间
+        if (showWorld) renderWorld(now);
+
+        // status fps
+        frames++;
+        const t = performance.now();
+        if (t - lastTick >= 800){
+          fps = Math.round(frames * 1000 / (t - lastTick));
+          frames = 0;
+          lastTick = t;
+        }
+        renderStatus(now);
+
+        requestAnimationFrame(update);
+      }
+
+      // UI hide with inactivity
+      let idleTimer = null;
+      let uiHidden = false;
+      function setUIHidden(v){
+        uiHidden = v;
+        document.body.classList.toggle("ui-hide", uiHidden);
+        if (uiHidden) showToast("UI已隐藏");
+      }
+      function poke(){
+        clearTimeout(idleTimer);
+        document.body.classList.remove("cursor-hide");
+        idleTimer = setTimeout(()=>{
+          document.body.classList.add("cursor-hide");
+        }, 2500);
+      }
+      window.addEventListener("mousemove", poke, {passive:true});
+      window.addEventListener("touchstart", poke, {passive:true});
+      poke();
+
+      // Buttons
+      btnFullscreen.addEventListener("click", toggleFullscreen);
+      btnTheme.addEventListener("click", ()=>setTheme(themeIndex+1));
+
+      btnSeconds.addEventListener("click", ()=>{
+        showSeconds = !showSeconds;
+        setUIFlags();
+        showToast(showSeconds ? "显示秒" : "隐藏秒");
+      });
+
+      btnCountdown.addEventListener("click", ()=>{
+        showCountdown = !showCountdown;
+        setUIFlags();
+        showToast(showCountdown ? "显示倒计时" : "隐藏倒计时");
+      });
+
+      btnWorld.addEventListener("click", ()=>{
+        showWorld = !showWorld;
+        setUIFlags();
+        showToast(showWorld ? "显示世界时钟" : "隐藏世界时钟");
+      });
+
+      btnWake.addEventListener("click", async ()=>{
+        store.set("wakeOn", !wakeLock);
+        await toggleWakeLock();
+      });
+
+      btnMute.addEventListener("click", ()=>{
+        muted = !muted;
+        setUIFlags();
+        showToast(muted ? "已静音" : "已取消静音");
+      });
+
+      btnBigger.addEventListener("click", ()=>{
+        clockScale = Math.min(1.35, Math.round((clockScale + 0.05)*100)/100);
+        document.documentElement.style.setProperty("--clockScale", String(clockScale));
+        store.set("clockScale", clockScale);
+        showToast("放大：" + Math.round(clockScale*100) + "%");
+      });
+      btnSmaller.addEventListener("click", ()=>{
+        clockScale = Math.max(0.80, Math.round((clockScale - 0.05)*100)/100);
+        document.documentElement.style.setProperty("--clockScale", String(clockScale));
+        store.set("clockScale", clockScale);
+        showToast("缩小：" + Math.round(clockScale*100) + "%");
+      });
+
+      // Keyboard shortcuts
+      window.addEventListener("keydown", (e)=>{
+        const k = e.key.toLowerCase();
+        if (k === "f"){ e.preventDefault(); toggleFullscreen(); }
+        else if (k === "t"){ e.preventDefault(); setTheme(themeIndex+1); }
+        else if (k === "s"){ e.preventDefault(); showSeconds=!showSeconds; setUIFlags(); showToast(showSeconds?"显示秒":"隐藏秒"); }
+        else if (k === "c"){ e.preventDefault(); showCountdown=!showCountdown; setUIFlags(); showToast(showCountdown?"显示倒计时":"隐藏倒计时"); }
+        else if (k === "w"){ e.preventDefault(); store.set("wakeOn", !wakeLock); toggleWakeLock(); }
+        else if (k === "m"){ e.preventDefault(); muted=!muted; setUIFlags(); showToast(muted?"已静音":"已取消静音"); }
+        else if (k === " "){ e.preventDefault(); setUIHidden(!uiHidden); }
+        else if (k === "+" || k === "="){ e.preventDefault(); btnBigger.click(); }
+        else if (k === "-" || k === "_"){ e.preventDefault(); btnSmaller.click(); }
+      });
+
+      // Click anywhere to gently arm sound hint
+      document.addEventListener("pointerdown", ()=>{
+        // 不自动开声音，只给一个更顺手的入口
+        if (!soundArmed){
+          btnSound.classList.add("on");
+          btnSound.textContent = "声音 已就绪";
+          setTimeout(()=>{
+            if (!soundArmed){
+              btnSound.classList.remove("on");
+              btnSound.innerHTML = "声音 <small>点我</small>";
+            }
+          }, 1600);
+        }
+      }, {passive:true});
+
+      // apply initial flags
+      setUIFlags();
+      setTheme(themeIndex);
+
+      // make world grid once
+      renderWorld(new Date());
+
+      // start
+      showToast("跨年大屏已启动");
+      requestAnimationFrame(update);
+    })();
+  </script>
+</body>
+</html>
