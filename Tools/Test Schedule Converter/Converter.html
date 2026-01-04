@@ -1,0 +1,1638 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>考试日程转换器｜CSV/Excel/文字/截图 → iCal/文本/图片</title>
+
+  <!-- Fonts (system first) -->
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.09);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.68);
+      --muted2: rgba(255,255,255,.52);
+      --good: #4fe3a6;
+      --warn: #ffcc66;
+      --bad: #ff6b6b;
+      --brand: #7aa7ff;
+      --brand2:#b58cff;
+      --shadow: 0 20px 50px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius2: 14px;
+      --gap: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 800px at 10% 15%, rgba(122,167,255,.35), transparent 60%),
+        radial-gradient(1000px 700px at 85% 10%, rgba(181,140,255,.28), transparent 55%),
+        radial-gradient(1100px 900px at 55% 85%, rgba(79,227,166,.16), transparent 60%),
+        linear-gradient(180deg, #080b16, #0b1020 35%, #070a12);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC","Hiragino Sans GB","Microsoft YaHei", Arial, sans-serif;
+      min-height: 100vh;
+    }
+    a{color:inherit}
+    .wrap{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 22px 16px 60px;
+    }
+    .topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 16px;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: 20px;
+      letter-spacing:.3px;
+      font-weight: 780;
+    }
+    .brand p{
+      margin:0;
+      color:var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .pillrow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    .pill{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--stroke);
+      padding: 8px 10px;
+      border-radius: 999px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow: 0 10px 30px rgba(0,0,0,.22);
+    }
+    .pill label{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill select, .pill input{
+      background: transparent;
+      border: 0;
+      color: var(--text);
+      outline: none;
+      font-size: 13px;
+      padding: 2px 0;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+      .pillrow{justify-content:flex-start}
+    }
+
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+    .card .hd{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+    }
+    .hd .title{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .hd .title b{
+      font-size: 14px;
+      letter-spacing:.2px;
+    }
+    .hd .title span{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .bd{padding: 14px}
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .tab{
+      cursor:pointer;
+      user-select:none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 12px;
+      transition: .2s ease;
+    }
+    .tab.active{
+      color: var(--text);
+      border-color: rgba(122,167,255,.5);
+      background: linear-gradient(135deg, rgba(122,167,255,.16), rgba(181,140,255,.10));
+    }
+
+    .drop{
+      border: 1.5px dashed rgba(255,255,255,.22);
+      border-radius: var(--radius2);
+      padding: 16px;
+      background: rgba(255,255,255,.04);
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      align-items: center;
+      text-align:center;
+    }
+    .drop strong{font-size: 14px}
+    .drop span{font-size: 12px; color: var(--muted)}
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .btn{
+      cursor:pointer;
+      user-select:none;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition: .2s ease;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+    .btn:hover{transform: translateY(-1px); background: rgba(255,255,255,.085)}
+    .btn.primary{
+      border-color: rgba(122,167,255,.55);
+      background: linear-gradient(135deg, rgba(122,167,255,.22), rgba(181,140,255,.18));
+    }
+    .btn.good{
+      border-color: rgba(79,227,166,.55);
+      background: linear-gradient(135deg, rgba(79,227,166,.20), rgba(122,167,255,.10));
+    }
+    .btn.warn{
+      border-color: rgba(255,204,102,.55);
+      background: linear-gradient(135deg, rgba(255,204,102,.16), rgba(181,140,255,.10));
+    }
+    .btn:disabled{
+      cursor:not-allowed;
+      opacity:.55;
+      transform:none !important;
+    }
+    .hint{
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.45;
+    }
+
+    textarea{
+      width:100%;
+      min-height: 168px;
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 12px;
+      outline:none;
+      font-size: 13px;
+      line-height: 1.5;
+      font-family: var(--mono);
+    }
+
+    .status{
+      margin-top: 10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: rgba(255,255,255,.25);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+    }
+    .dot.good{background: var(--good); box-shadow: 0 0 0 3px rgba(79,227,166,.18)}
+    .dot.warn{background: var(--warn); box-shadow: 0 0 0 3px rgba(255,204,102,.18)}
+    .dot.bad{background: var(--bad); box-shadow: 0 0 0 3px rgba(255,107,107,.18)}
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+    }
+    th, td{
+      padding: 10px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      font-size: 12px;
+      vertical-align: top;
+    }
+    th{
+      text-align:left;
+      color: var(--muted);
+      font-weight: 650;
+      background: rgba(255,255,255,.04);
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tr:last-child td{border-bottom:0}
+
+    .mini{
+      color: var(--muted2);
+      font-size: 11px;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .kv > div{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .kv b{font-size:12px}
+    .kv p{margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.45}
+    .kv code{font-family:var(--mono); font-size: 11px; color: rgba(255,255,255,.78)}
+
+    .events{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .event{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .event .top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom: 10px;
+    }
+    .event .top b{
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .event .top .tools{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.16);
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .form{
+      display:grid;
+      grid-template-columns: 1.6fr 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 980px){
+      .form{grid-template-columns:1fr}
+    }
+    .field label{
+      display:block;
+      font-size: 11px;
+      color: var(--muted2);
+      margin-bottom: 6px;
+    }
+    .field input{
+      width:100%;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 10px 10px;
+      outline:none;
+      font-size: 13px;
+    }
+
+    /* Poster */
+    .posterWrap{
+      padding: 14px;
+    }
+    .poster{
+      width:100%;
+      border-radius: 22px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(122,167,255,.30), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(181,140,255,.25), transparent 60%),
+        radial-gradient(900px 600px at 70% 90%, rgba(79,227,166,.16), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.22));
+      box-shadow: 0 24px 70px rgba(0,0,0,.45);
+      padding: 18px 18px 14px;
+    }
+    .poster h2{
+      margin:0;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .poster .sub{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .posterList{
+      margin-top: 12px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .posterItem{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .posterItem .left{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .posterItem .name{
+      font-weight: 760;
+      font-size: 13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .posterItem .meta{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+    }
+    .posterItem .right{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      flex: 0 0 auto;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.86);
+      justify-content:flex-end;
+      max-width: 200px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .footerNote{
+      margin-top: 10px;
+      display:flex;
+      justify-content:space-between;
+      gap: 10px;
+      color: rgba(255,255,255,.60);
+      font-size: 11px;
+    }
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.22);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.75);
+    }
+
+    .hidden{display:none !important;}
+  </style>
+
+  <!-- CSV / Excel / Image export libs (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <h1>考试日程转换器</h1>
+        <p>上传教务导出的 CSV / Excel，或粘贴文字，或截图 OCR，自动解析考试时间、科目、地点等信息，导出 <b>iCal (.ics)</b>、整理文本、海报图片。</p>
+      </div>
+      <div class="pillrow">
+        <div class="pill">
+          <label>时区</label>
+          <select id="tz">
+            <option value="Asia/Tokyo" selected>Asia/Tokyo（东京）</option>
+            <option value="Asia/Shanghai">Asia/Shanghai（上海）</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </div>
+        <div class="pill">
+          <label>默认时长</label>
+          <select id="defaultDur">
+            <option value="60">60 分钟</option>
+            <option value="90" selected>90 分钟</option>
+            <option value="120">120 分钟</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left: Import -->
+      <div class="card">
+        <div class="hd">
+          <div class="title">
+            <b>导入</b>
+            <span>支持 CSV / Excel / 粘贴文本 / 截图 OCR</span>
+          </div>
+          <div class="title" style="text-align:right">
+            <b id="countLabel">0 条</b>
+            <span id="parseHint">等待导入</span>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="tabs" id="tabs">
+            <div class="tab active" data-tab="file">上传文件</div>
+            <div class="tab" data-tab="paste">粘贴文字</div>
+            <div class="tab" data-tab="ocr">截图 OCR</div>
+          </div>
+
+          <!-- File -->
+          <div id="tab-file">
+            <div class="drop" id="drop">
+              <strong>拖拽文件到这里</strong>
+              <span>或点击按钮选择文件（.csv / .xlsx / .xls / .txt）</span>
+              <div class="row">
+                <button class="btn primary" id="pickFile">选择文件</button>
+                <button class="btn" id="loadDemo">导入示例</button>
+              </div>
+              <input type="file" id="fileInput" class="hidden" accept=".csv,.xlsx,.xls,.txt" />
+              <div class="hint">
+                小提示：很多教务系统导出的 Excel 表，第一行是表头。这个页面会自动识别 “科目/课程/考试时间/地点/教室/考场”等字段。识别错了也没事，右侧可以直接改。
+              </div>
+            </div>
+          </div>
+
+          <!-- Paste -->
+          <div id="tab-paste" class="hidden">
+            <textarea id="pasteArea" placeholder="把表格内容粘贴进来（支持：制表符、逗号分隔、每行一条；也支持整段文本，包含日期+时间范围）"></textarea>
+            <div class="row" style="margin-top:10px">
+              <button class="btn primary" id="parsePaste">解析粘贴内容</button>
+              <button class="btn" id="clearPaste">清空</button>
+            </div>
+            <div class="hint">
+              如果你是从网页或 Excel 直接复制，通常是制表符分隔，粘贴进来就能自动拆列。
+            </div>
+          </div>
+
+          <!-- OCR -->
+          <div id="tab-ocr" class="hidden">
+            <div class="drop">
+              <strong>上传截图/照片</strong>
+              <span>识别后会把文字丢到解析器里（纯前端 OCR，第一次会加载 OCR 组件）</span>
+              <div class="row">
+                <button class="btn primary" id="pickImg">选择图片</button>
+                <button class="btn warn" id="doOcr" disabled>开始 OCR</button>
+              </div>
+              <input type="file" id="imgInput" class="hidden" accept="image/*" />
+              <div class="status" id="ocrStatus">
+                <span class="dot"></span><span>未选择图片</span>
+              </div>
+              <textarea id="ocrText" placeholder="OCR 结果会出现在这里，你也可以手动改一下再点“解析 OCR 文本”"></textarea>
+              <div class="row" style="margin-top:10px">
+                <button class="btn primary" id="parseOcrText">解析 OCR 文本</button>
+                <button class="btn" id="clearOcr">清空</button>
+              </div>
+              <div class="hint">
+                OCR 对表格线条/阴影/低清图片可能不稳定。你可以在 iPhone 相册里“复制文字”，再粘贴到“粘贴文字”里，通常更准。
+              </div>
+            </div>
+          </div>
+
+          <div class="status" id="status">
+            <span class="dot" id="statusDot"></span>
+            <span id="statusText">未导入</span>
+          </div>
+
+          <div class="kv">
+            <div>
+              <b>识别规则概览</b>
+              <p>自动匹配表头关键词，支持单列时间（如 <code>2026-01-07 14:00-16:00</code>）或日期列 + 时间列。</p>
+            </div>
+            <div>
+              <b>导出内容</b>
+              <p>支持 <code>.ics</code> 日历文件、整理文本一键复制、海报 PNG 下载。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Result / Export -->
+      <div class="card">
+        <div class="hd">
+          <div class="title">
+            <b>结果与导出</b>
+            <span>可编辑后再导出，避免教务表格字段乱</span>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn good" id="downloadIcs" disabled>下载 iCal（.ics）</button>
+            <button class="btn" id="copyText" disabled>复制整理文本</button>
+            <button class="btn warn" id="downloadPng" disabled>下载海报（PNG）</button>
+          </div>
+        </div>
+
+        <div class="bd">
+          <div class="mini" id="miniTip">
+            解析后会在这里生成可编辑的考试条目。你可以改科目名、时间、地点，改完直接导出。
+          </div>
+
+          <div class="events" id="events"></div>
+
+          <div style="height:12px"></div>
+
+          <div class="posterWrap">
+            <div class="poster" id="poster">
+              <h2>考试日程</h2>
+              <p class="sub" id="posterSub">尚未导入</p>
+              <div class="posterList" id="posterList"></div>
+              <div class="footerNote">
+                <div>导出：<span class="kbd">.ics</span> / <span class="kbd">文本</span> / <span class="kbd">PNG</span></div>
+                <div id="posterTime"></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="mini">
+            兼容性：Chrome / Edge / Safari 都能用。若你想离线使用，把这三个库（PapaParse、xlsx、html2canvas）下载后改成本地引用即可。
+          </div>
+
+          <div style="height:10px"></div>
+
+          <div class="mini" style="color:rgba(255,255,255,.55)">
+            隐私：默认全程本地解析，不上传服务器。OCR 也是前端运行。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raw preview -->
+    <div style="height:16px"></div>
+    <div class="card">
+      <div class="hd">
+        <div class="title">
+          <b>原始表格预览</b>
+          <span>用于检查解析来源（只展示前 50 行）</span>
+        </div>
+        <div class="row" style="justify-content:flex-end">
+          <button class="btn" id="downloadNormalized" disabled>下载规范化 CSV</button>
+        </div>
+      </div>
+      <div class="bd">
+        <div style="max-height: 360px; overflow:auto;">
+          <table id="rawTable">
+            <thead><tr><th>提示</th></tr></thead>
+            <tbody><tr><td style="color:rgba(255,255,255,.62)">还没有数据</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  // UI refs
+  const tabs = $("#tabs");
+  const tabFile = $("#tab-file");
+  const tabPaste = $("#tab-paste");
+  const tabOcr = $("#tab-ocr");
+  const drop = $("#drop");
+  const pickFile = $("#pickFile");
+  const fileInput = $("#fileInput");
+  const loadDemo = $("#loadDemo");
+
+  const pasteArea = $("#pasteArea");
+  const parsePaste = $("#parsePaste");
+  const clearPaste = $("#clearPaste");
+
+  const pickImg = $("#pickImg");
+  const imgInput = $("#imgInput");
+  const doOcr = $("#doOcr");
+  const ocrStatus = $("#ocrStatus");
+  const ocrText = $("#ocrText");
+  const parseOcrText = $("#parseOcrText");
+  const clearOcr = $("#clearOcr");
+
+  const statusDot = $("#statusDot");
+  const statusText = $("#statusText");
+  const parseHint = $("#parseHint");
+  const countLabel = $("#countLabel");
+
+  const downloadIcs = $("#downloadIcs");
+  const copyText = $("#copyText");
+  const downloadPng = $("#downloadPng");
+  const downloadNormalized = $("#downloadNormalized");
+
+  const eventsBox = $("#events");
+  const rawTable = $("#rawTable");
+  const posterSub = $("#posterSub");
+  const posterList = $("#posterList");
+  const posterTime = $("#posterTime");
+
+  const tzSelect = $("#tz");
+  const defaultDur = $("#defaultDur");
+
+  // State
+  let rawRows = [];     // parsed rows (objects)
+  let items = [];       // normalized exam items
+  let imgFile = null;   // selected image
+  let tesseractReady = false;
+
+  // -------- Tabs
+  tabs.addEventListener("click", (e) => {
+    const el = e.target.closest(".tab");
+    if(!el) return;
+    $$(".tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+    const which = el.dataset.tab;
+    tabFile.classList.toggle("hidden", which !== "file");
+    tabPaste.classList.toggle("hidden", which !== "paste");
+    tabOcr.classList.toggle("hidden", which !== "ocr");
+  });
+
+  // -------- File picking / drag drop
+  pickFile.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", async () => {
+    if(!fileInput.files?.[0]) return;
+    await handleFile(fileInput.files[0]);
+    fileInput.value = "";
+  });
+
+  ["dragenter","dragover"].forEach(evt => {
+    drop.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.style.borderColor = "rgba(122,167,255,.70)";
+      drop.style.background = "rgba(122,167,255,.08)";
+    });
+  });
+  ["dragleave","drop"].forEach(evt => {
+    drop.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      drop.style.borderColor = "rgba(255,255,255,.22)";
+      drop.style.background = "rgba(255,255,255,.04)";
+    });
+  });
+  drop.addEventListener("drop", async (e) => {
+    const f = e.dataTransfer.files?.[0];
+    if(f) await handleFile(f);
+  });
+
+  loadDemo.addEventListener("click", () => {
+    const demo = [
+      { "考试科目":"中国近现代史纲要", "考试时间":"2025-01-06 14:30-15:10", "地点":"教学楼A 201" },
+      { "考试科目":"大学外语A（一）", "考试时间":"2025-01-07 09:00-11:00", "地点":"教学楼B 305" },
+      { "考试科目":"经济数学（一）", "考试时间":"2025-01-07 14:00-16:00", "地点":"教学楼B 401" },
+      { "考试科目":"军事理论", "考试时间":"2025-01-09 09:00-09:40", "地点":"教学楼C 102" },
+      { "考试科目":"管理学原理", "考试时间":"2025-01-14 14:00-16:00", "地点":"教学楼A 305" }
+    ];
+    rawRows = demo;
+    postParse(demo, "示例数据");
+  });
+
+  // -------- Paste parsing
+  parsePaste.addEventListener("click", () => {
+    const text = pasteArea.value.trim();
+    if(!text){
+      setStatus("warn","粘贴内容为空");
+      return;
+    }
+    const rows = parseTextToRows(text);
+    rawRows = rows;
+    postParse(rows, "粘贴内容");
+  });
+  clearPaste.addEventListener("click", () => {
+    pasteArea.value = "";
+    setStatus("warn","已清空粘贴内容");
+  });
+
+  // -------- OCR
+  pickImg.addEventListener("click", () => imgInput.click());
+  imgInput.addEventListener("change", () => {
+    imgFile = imgInput.files?.[0] || null;
+    doOcr.disabled = !imgFile;
+    renderOcrStatus(imgFile ? "warn" : "muted", imgFile ? `已选择图片：${imgFile.name}` : "未选择图片");
+    imgInput.value = "";
+  });
+
+  doOcr.addEventListener("click", async () => {
+    if(!imgFile) return;
+    try{
+      renderOcrStatus("warn","加载 OCR 组件中…");
+      await ensureTesseract();
+      renderOcrStatus("warn","识别中…（图片越清晰越快）");
+      const text = await runOcr(imgFile);
+      ocrText.value = text.trim();
+      renderOcrStatus("good","OCR 完成，可直接解析或手动微调文本");
+      setStatus("good","OCR 成功");
+    }catch(err){
+      console.error(err);
+      renderOcrStatus("bad","OCR 失败：建议用“相册复制文字”再粘贴");
+      setStatus("bad","OCR 失败");
+    }
+  });
+
+  parseOcrText.addEventListener("click", () => {
+    const text = ocrText.value.trim();
+    if(!text){
+      setStatus("warn","OCR 文本为空");
+      return;
+    }
+    const rows = parseTextToRows(text);
+    rawRows = rows;
+    postParse(rows, "OCR 文本");
+  });
+  clearOcr.addEventListener("click", () => {
+    ocrText.value = "";
+    imgFile = null;
+    doOcr.disabled = true;
+    renderOcrStatus("muted","未选择图片");
+    setStatus("warn","已清空 OCR 内容");
+  });
+
+  function renderOcrStatus(kind, msg){
+    const dot = ocrStatus.querySelector(".dot");
+    dot.className = "dot";
+    if(kind === "good") dot.classList.add("good");
+    if(kind === "warn") dot.classList.add("warn");
+    if(kind === "bad") dot.classList.add("bad");
+    ocrStatus.querySelector("span:last-child").textContent = msg;
+  }
+
+  async function ensureTesseract(){
+    if(tesseractReady) return;
+    await new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Tesseract load failed"));
+      document.head.appendChild(s);
+    });
+    tesseractReady = true;
+  }
+
+  async function runOcr(file){
+    const { createWorker } = Tesseract;
+    const worker = await createWorker("chi_sim+eng");
+    await worker.setParameters({
+      tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+    });
+    const { data: { text } } = await worker.recognize(file);
+    await worker.terminate();
+    return text;
+  }
+
+  // -------- File handler
+  async function handleFile(file){
+    const name = file.name.toLowerCase();
+    setStatus("warn", `读取文件：${file.name}`);
+    try{
+      if(name.endsWith(".csv") || name.endsWith(".txt")){
+        const text = await file.text();
+        const rows = parseCsvText(text);
+        rawRows = rows;
+        postParse(rows, file.name);
+        return;
+      }
+      if(name.endsWith(".xlsx") || name.endsWith(".xls")){
+        const buf = await file.arrayBuffer();
+        const rows = parseExcel(buf);
+        rawRows = rows;
+        postParse(rows, file.name);
+        return;
+      }
+      // fallback: read as text
+      const text = await file.text();
+      const rows = parseTextToRows(text);
+      rawRows = rows;
+      postParse(rows, file.name);
+    }catch(err){
+      console.error(err);
+      setStatus("bad","读取/解析失败：文件格式可能不规范");
+    }
+  }
+
+  // -------- Parsing core
+  function parseCsvText(text){
+    const res = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      dynamicTyping: false,
+    });
+    const rows = (res.data || []).filter(r => Object.keys(r).some(k => String(r[k] ?? "").trim() !== ""));
+    // If header parsing failed, fallback to text-to-rows
+    if(!rows.length || Object.keys(rows[0] || {}).length <= 1){
+      return parseTextToRows(text);
+    }
+    return rows;
+  }
+
+  function parseExcel(arrayBuffer){
+    const wb = XLSX.read(arrayBuffer, { type: "array" });
+    const sheetName = wb.SheetNames[0];
+    const ws = wb.Sheets[sheetName];
+    // first try with header row
+    let rows = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    // fallback: if looks like 2D
+    if(!rows.length){
+      const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false });
+      rows = aoaToRows(aoa);
+    }
+    return rows.filter(r => Object.keys(r).some(k => String(r[k] ?? "").trim() !== ""));
+  }
+
+  function aoaToRows(aoa){
+    if(!aoa || aoa.length === 0) return [];
+    const header = (aoa[0] || []).map(x => String(x ?? "").trim());
+    const out = [];
+    for(let i=1;i<aoa.length;i++){
+      const row = {};
+      const line = aoa[i] || [];
+      header.forEach((h, idx) => {
+        if(h) row[h] = String(line[idx] ?? "").trim();
+      });
+      out.push(row);
+    }
+    return out;
+  }
+
+  function parseTextToRows(text){
+    // Try to detect table-like text (tab/comma)
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    if(lines.length === 0) return [];
+
+    // If first line looks like header with separators
+    const sep = detectSeparator(lines.slice(0, 5).join("\n"));
+    if(sep){
+      const parsed = Papa.parse(lines.join("\n"), { delimiter: sep, header: true, skipEmptyLines: true });
+      const rows = (parsed.data || []).filter(r => Object.keys(r).some(k => String(r[k] ?? "").trim() !== ""));
+      if(rows.length) return rows;
+    }
+
+    // Otherwise: treat each line as one record, attempt extract datetime + subject + location
+    return lines.map((line, idx) => ({ "line": line, "_index": idx+1 }));
+  }
+
+  function detectSeparator(sample){
+    // prefer tab, then comma, then semicolon
+    const hasTab = /\t/.test(sample);
+    if(hasTab) return "\t";
+    const commaCount = (sample.match(/,/g) || []).length;
+    const semiCount = (sample.match(/;/g) || []).length;
+    if(commaCount >= 2) return ",";
+    if(semiCount >= 2) return ";";
+    return null;
+  }
+
+  function postParse(rows, sourceName){
+    renderRawPreview(rows);
+    const normalized = normalizeRows(rows);
+    items = normalized;
+    renderItems(items);
+    renderPoster(items, sourceName);
+    updateExports(items);
+    const ok = items.length > 0;
+    setStatus(ok ? "good" : "warn", ok ? `解析完成：${items.length} 条（来源：${sourceName}）` : `未识别到考试条目（来源：${sourceName}）`);
+    parseHint.textContent = ok ? "解析完成，可编辑后导出" : "没识别出来，建议换导入方式或手动改";
+    countLabel.textContent = `${items.length} 条`;
+  }
+
+  function normalizeRows(rows){
+    if(!rows || rows.length === 0) return [];
+    // Build header map from first row keys (if object-based table)
+    const first = rows[0];
+    const keys = Object.keys(first || {});
+    const isTable = keys.length > 1 || keys.some(k => k !== "line");
+
+    if(!isTable){
+      // each row has "line"
+      return rows.map(r => lineToItem(String(r.line || ""))).filter(Boolean);
+    }
+
+    // Map columns by heuristics
+    const keyMap = guessColumns(keys);
+
+    const out = [];
+    for(const r of rows){
+      const raw = (k) => String(r[k] ?? "").trim();
+
+      const subject = pickFirstNonEmpty([
+        raw(keyMap.subject),
+        raw(keyMap.course),
+        raw(keyMap.name),
+      ]);
+
+      const location = joinNonEmpty([
+        raw(keyMap.location),
+        raw(keyMap.room),
+        raw(keyMap.place),
+        raw(keyMap.building),
+        raw(keyMap.campus),
+        raw(keyMap.seat),
+      ], " ");
+
+      const rawTime = pickFirstNonEmpty([
+        raw(keyMap.datetime),
+        raw(keyMap.time),
+        raw(keyMap.dateTime),
+        raw(keyMap.examTime),
+      ]);
+
+      const rawDate = pickFirstNonEmpty([
+        raw(keyMap.date),
+        raw(keyMap.day),
+      ]);
+
+      const rawTimeOnly = pickFirstNonEmpty([
+        raw(keyMap.timeOnly),
+        raw(keyMap.period),
+      ]);
+
+      // Parse datetime
+      const dt = parseDateTime(rawTime || `${rawDate} ${rawTimeOnly}`.trim());
+      // Fallback: try parse from any cell
+      let dt2 = dt;
+      if(!dt2){
+        const all = keys.map(k => raw(k)).join(" ");
+        dt2 = parseDateTime(all);
+      }
+
+      // If no subject, try from any cell (typical: first column)
+      let subject2 = subject;
+      if(!subject2){
+        const guess = keys.map(k => raw(k)).filter(Boolean)[0] || "";
+        subject2 = guess;
+      }
+
+      // If still no datetime, skip
+      if(!dt2 || !dt2.start) continue;
+
+      out.push({
+        title: cleanTitle(subject2) || "考试",
+        start: dt2.start,
+        end: dt2.end || addMinutes(dt2.start, Number(defaultDur.value)),
+        location: location || "",
+        note: buildNoteFromRow(r, keys, keyMap),
+        sourceRow: r
+      });
+    }
+
+    // Sort by start time
+    out.sort((a,b) => a.start.localeCompare(b.start));
+    return out;
+  }
+
+  function guessColumns(keys){
+    const norm = keys.map(k => ({ k, n: normKey(k) }));
+    const findKey = (preds) => {
+      for(const p of preds){
+        const hit = norm.find(x => p.test(x.n));
+        if(hit) return hit.k;
+      }
+      return "";
+    };
+
+    return {
+      subject: findKey([/(考试科目|科目|课程|课程名称|考试名称|科目名称)/]),
+      course:  findKey([/(course|subject|name)/]),
+      name:    findKey([/(标题|项目)/]),
+      datetime:findKey([/(考试时间|时间|日期时间|datetime|dateandtime)/]),
+      dateTime:findKey([/(日期.*时间|时间.*日期)/]),
+      examTime:findKey([/(起止时间|开始时间.*结束时间)/]),
+      date:    findKey([/(日期|考试日期|date|day)/]),
+      day:     findKey([/(周几|星期)/]),
+      time:    findKey([/(时间|时段|time|period)/]),
+      timeOnly:findKey([/(开始|start).*?(结束|end)/]),
+      period:  findKey([/(09:00|14:00|时间段|时段)/]),
+
+      location:findKey([/(地点|位置|考场|场地|location|place)/]),
+      room:    findKey([/(教室|房间|room|教室号)/]),
+      place:   findKey([/(楼|building|教学楼|楼栋)/]),
+      building:findKey([/(楼栋|building)/]),
+      campus:  findKey([/(校区|campus)/]),
+      seat:    findKey([/(座位|seat|号)/]),
+    };
+  }
+
+  function normKey(s){
+    return String(s || "")
+      .toLowerCase()
+      .replace(/\s+/g,"")
+      .replace(/[：:，,。\.、/\\\-\(\)\[\]\{\}]/g,"");
+  }
+
+  function pickFirstNonEmpty(list){
+    for(const x of list){
+      if(x && String(x).trim() !== "") return String(x).trim();
+    }
+    return "";
+  }
+  function joinNonEmpty(list, sep){
+    return list.map(x => String(x || "").trim()).filter(Boolean).join(sep).trim();
+  }
+
+  function cleanTitle(s){
+    return String(s || "").replace(/\s+/g," ").trim();
+  }
+
+  function buildNoteFromRow(row, keys, keyMap){
+    // Keep compact: include non-empty fields that are not title/time/location main
+    const skip = new Set([keyMap.subject,keyMap.course,keyMap.name,keyMap.datetime,keyMap.time,keyMap.date,keyMap.location,keyMap.room,keyMap.place,keyMap.building,keyMap.campus,keyMap.seat].filter(Boolean));
+    const parts = [];
+    for(const k of keys){
+      if(skip.has(k)) continue;
+      const v = String(row[k] ?? "").trim();
+      if(!v) continue;
+      parts.push(`${k}：${v}`);
+    }
+    return parts.join("\n");
+  }
+
+  function lineToItem(line){
+    const dt = parseDateTime(line);
+    if(!dt?.start) return null;
+
+    // Subject guess: remove datetime fragments then take remainder
+    let rest = line
+      .replace(/\d{4}[-\/\.]\d{1,2}[-\/\.]\d{1,2}/g, " ")
+      .replace(/\d{1,2}:\d{2}\s*[-~—–]\s*\d{1,2}:\d{2}/g, " ")
+      .replace(/\d{1,2}:\d{2}/g, " ")
+      .replace(/\s+/g," ")
+      .trim();
+
+    // Location guess: keywords after 地点/教室/考场
+    let loc = "";
+    const m = line.match(/(地点|教室|考场|位置)\s*[:：]?\s*([^\s，,；;]+)/);
+    if(m) loc = m[2];
+
+    // If rest too short, use original
+    const title = cleanTitle(rest) || "考试";
+    return {
+      title,
+      start: dt.start,
+      end: dt.end || addMinutes(dt.start, Number(defaultDur.value)),
+      location: loc,
+      note: "",
+      sourceRow: { line }
+    };
+  }
+
+  function parseDateTime(text){
+    if(!text) return null;
+    const s = String(text).replace(/\u3000/g," ").trim();
+    // 1) yyyy-mm-dd hh:mm-hh:mm
+    // 2) yyyy/mm/dd hh:mm~hh:mm
+    // 3) yyyy.mm.dd hh:mm - hh:mm
+    const dateRe = /(\d{4})\s*[-\/\.]\s*(\d{1,2})\s*[-\/\.]\s*(\d{1,2})/;
+    const timeRangeRe = /(\d{1,2})\s*:\s*(\d{2})\s*[-~—–]\s*(\d{1,2})\s*:\s*(\d{2})/;
+    const timeOneRe = /(\d{1,2})\s*:\s*(\d{2})/;
+
+    const dm = s.match(dateRe);
+    if(!dm) return null;
+    const Y = Number(dm[1]);
+    const M = Number(dm[2]);
+    const D = Number(dm[3]);
+
+    const tm = s.match(timeRangeRe);
+    if(tm){
+      const sh = pad2(tm[1]), sm = pad2(tm[2]);
+      const eh = pad2(tm[3]), em = pad2(tm[4]);
+      const start = `${Y}-${pad2(M)}-${pad2(D)}T${sh}:${sm}:00`;
+      const end   = `${Y}-${pad2(M)}-${pad2(D)}T${eh}:${em}:00`;
+      return { start, end };
+    }
+
+    const t1 = s.match(timeOneRe);
+    if(t1){
+      const sh = pad2(t1[1]), sm = pad2(t1[2]);
+      const start = `${Y}-${pad2(M)}-${pad2(D)}T${sh}:${sm}:00`;
+      return { start, end: null };
+    }
+
+    // If date exists but no time, default 09:00
+    const start = `${Y}-${pad2(M)}-${pad2(D)}T09:00:00`;
+    return { start, end: null };
+  }
+
+  function pad2(n){
+    const x = Number(n);
+    return String(x).padStart(2,"0");
+  }
+
+  function addMinutes(isoLocal, mins){
+    // isoLocal: YYYY-MM-DDTHH:mm:ss (local)
+    const d = new Date(isoLocal);
+    d.setMinutes(d.getMinutes() + mins);
+    return toIsoLocal(d);
+  }
+
+  function toIsoLocal(d){
+    const Y = d.getFullYear();
+    const M = pad2(d.getMonth()+1);
+    const D = pad2(d.getDate());
+    const h = pad2(d.getHours());
+    const m = pad2(d.getMinutes());
+    const s = pad2(d.getSeconds());
+    return `${Y}-${M}-${D}T${h}:${m}:${s}`;
+  }
+
+  // -------- Rendering
+  function setStatus(kind, msg){
+    statusDot.className = "dot";
+    if(kind === "good") statusDot.classList.add("good");
+    if(kind === "warn") statusDot.classList.add("warn");
+    if(kind === "bad") statusDot.classList.add("bad");
+    statusText.textContent = msg;
+  }
+
+  function renderRawPreview(rows){
+    // Determine columns
+    let cols = [];
+    if(rows.length){
+      cols = Object.keys(rows[0]);
+      // If "line" mode
+      if(cols.length === 1 && cols[0] === "line") cols = ["line"];
+    }
+    const thead = cols.length
+      ? `<tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr>`
+      : `<tr><th>提示</th></tr>`;
+    const show = rows.slice(0, 50);
+    const tbody = show.length
+      ? show.map(r => `<tr>${cols.map(c => `<td>${escapeHtml(String(r[c] ?? ""))}</td>`).join("")}</tr>`).join("")
+      : `<tr><td style="color:rgba(255,255,255,.62)">还没有数据</td></tr>`;
+    rawTable.innerHTML = `<thead>${thead}</thead><tbody>${tbody}</tbody>`;
+
+    downloadNormalized.disabled = rows.length === 0;
+  }
+
+  function renderItems(list){
+    eventsBox.innerHTML = "";
+    if(!list.length){
+      eventsBox.innerHTML = `<div class="mini" style="color:rgba(255,255,255,.60)">暂无条目</div>`;
+      return;
+    }
+
+    list.forEach((it, idx) => {
+      const el = document.createElement("div");
+      el.className = "event";
+      el.innerHTML = `
+        <div class="top">
+          <div style="min-width:0">
+            <b>${escapeHtml(it.title)}</b>
+            <div class="mini">${fmtRange(it.start, it.end)} ${it.location ? "｜" + escapeHtml(it.location) : ""}</div>
+          </div>
+          <div class="tools">
+            <span class="chip">#${idx+1}</span>
+            <button class="btn" style="padding:7px 9px;border-radius:999px;font-size:12px" data-act="dup">复制</button>
+            <button class="btn" style="padding:7px 9px;border-radius:999px;font-size:12px" data-act="del">删除</button>
+          </div>
+        </div>
+
+        <div class="form">
+          <div class="field">
+            <label>科目/标题</label>
+            <input value="${escapeAttr(it.title)}" data-k="title" />
+          </div>
+          <div class="field">
+            <label>开始（YYYY-MM-DD HH:mm）</label>
+            <input value="${escapeAttr(toHuman(it.start))}" data-k="start" />
+          </div>
+          <div class="field">
+            <label>结束（YYYY-MM-DD HH:mm）</label>
+            <input value="${escapeAttr(toHuman(it.end))}" data-k="end" />
+          </div>
+          <div class="field" style="grid-column:1 / -1">
+            <label>地点（可空）</label>
+            <input value="${escapeAttr(it.location || "")}" data-k="location" />
+          </div>
+          <div class="field" style="grid-column:1 / -1">
+            <label>备注（会写入日历描述，可空）</label>
+            <input value="${escapeAttr((it.note || "").replace(/\n/g," / "))}" data-k="note" />
+          </div>
+        </div>
+      `;
+
+      // handlers
+      el.addEventListener("input", (e) => {
+        const inp = e.target.closest("input");
+        if(!inp) return;
+        const k = inp.dataset.k;
+        const v = inp.value;
+        const item = items[idx];
+        if(!item) return;
+
+        if(k === "start" || k === "end"){
+          const iso = humanToIso(v);
+          if(iso){
+            item[k] = iso;
+            // Keep end >= start
+            if(item.end < item.start){
+              item.end = addMinutes(item.start, Number(defaultDur.value));
+              // update end input
+              const endInput = el.querySelector('input[data-k="end"]');
+              endInput.value = toHuman(item.end);
+            }
+          }
+        }else{
+          item[k] = v.trim();
+        }
+        // update top mini line and poster
+        el.querySelector(".mini").textContent = `${fmtRange(item.start, item.end)}${item.location ? "｜" + item.location : ""}`;
+        el.querySelector("b").textContent = item.title || "考试";
+        renderPoster(items, "已编辑");
+        updateExports(items);
+      });
+
+      el.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-act]");
+        if(!b) return;
+        const act = b.dataset.act;
+        if(act === "del"){
+          items.splice(idx, 1);
+          renderItems(items);
+          renderPoster(items, "已编辑");
+          updateExports(items);
+          countLabel.textContent = `${items.length} 条`;
+          setStatus(items.length ? "good" : "warn", "已更新条目");
+        }
+        if(act === "dup"){
+          const clone = JSON.parse(JSON.stringify(items[idx]));
+          items.splice(idx+1, 0, clone);
+          renderItems(items);
+          renderPoster(items, "已编辑");
+          updateExports(items);
+          countLabel.textContent = `${items.length} 条`;
+          setStatus("good", "已复制一条");
+        }
+      });
+
+      eventsBox.appendChild(el);
+    });
+  }
+
+  function renderPoster(list, sourceName){
+    posterList.innerHTML = "";
+    const tz = tzSelect.value;
+    posterSub.textContent = list.length
+      ? `共 ${list.length} 场｜时区 ${tz}｜${sourceName || ""}`
+      : "尚未导入";
+
+    posterTime.textContent = new Date().toLocaleString(undefined, { hour12:false });
+
+    if(!list.length) return;
+
+    list.slice(0, 24).forEach((it) => {
+      const item = document.createElement("div");
+      item.className = "posterItem";
+      item.innerHTML = `
+        <div class="left">
+          <div class="name">${escapeHtml(it.title || "考试")}</div>
+          <div class="meta">
+            <span>🗓️ ${escapeHtml(dayStr(it.start))}</span>
+            <span>⏰ ${escapeHtml(timeStr(it.start))} - ${escapeHtml(timeStr(it.end))}</span>
+            ${it.location ? `<span>📍 ${escapeHtml(it.location)}</span>` : ""}
+          </div>
+        </div>
+        <div class="right">
+          <div class="badge">${escapeHtml(ymd(it.start))}</div>
+          <div class="badge" style="opacity:.85">${escapeHtml(weekday(it.start))}</div>
+        </div>
+      `;
+      posterList.appendChild(item);
+    });
+
+    if(list.length > 24){
+      const more = document.createElement("div");
+      more.className = "mini";
+      more.style.marginTop = "8px";
+      more.style.color = "rgba(255,255,255,.62)";
+      more.textContent = `海报最多展示 24 条，仍可导出全部 .ics。`;
+      posterList.appendChild(more);
+    }
+  }
+
+  function updateExports(list){
+    const ok = list.length > 0;
+    downloadIcs.disabled = !ok;
+    copyText.disabled = !ok;
+    downloadPng.disabled = !ok;
+    downloadNormalized.disabled = rawRows.length === 0;
+
+    downloadIcs.onclick = () => {
+      const ics = buildICS(list, tzSelect.value);
+      downloadText(ics, "exams.ics", "text/calendar;charset=utf-8");
+      setStatus("good","已生成 .ics");
+    };
+
+    copyText.onclick = async () => {
+      const txt = buildPrettyText(list);
+      try{
+        await navigator.clipboard.writeText(txt);
+        setStatus("good","已复制整理文本");
+      }catch{
+        // fallback
+        prompt("复制失败时可手动复制：", txt);
+      }
+    };
+
+    downloadPng.onclick = async () => {
+      try{
+        setStatus("warn","生成 PNG 中…");
+        const node = $("#poster");
+        const canvas = await html2canvas(node, {
+          scale: 2,
+          backgroundColor: null,
+          useCORS: true,
+        });
+        canvas.toBlob((blob) => {
+          if(!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "exams.png";
+          a.click();
+          URL.revokeObjectURL(url);
+          setStatus("good","已下载 PNG");
+        }, "image/png");
+      }catch(err){
+        console.error(err);
+        setStatus("bad","PNG 生成失败");
+      }
+    };
+
+    downloadNormalized.onclick = () => {
+      const csv = buildNormalizedCsv(list);
+      downloadText(csv, "exams_normalized.csv", "text/csv;charset=utf-8");
+      setStatus("good","已下载规范化 CSV");
+    };
+  }
+
+  // -------- Export builders
+  function buildPrettyText(list){
+    const grouped = groupByDate(list);
+    const lines = [];
+    for(const date of Object.keys(grouped).sort()){
+      lines.push(`${date}`);
+      grouped[date].sort((a,b)=>a.start.localeCompare(b.start)).forEach(it => {
+        const t = `${timeStr(it.start)}-${timeStr(it.end)}`;
+        const loc = it.location ? `｜${it.location}` : "";
+        lines.push(`  ${t}  ${it.title}${loc}`);
+      });
+      lines.push("");
+    }
+    return lines.join("\n").trim();
+  }
+
+  function buildNormalizedCsv(list){
+    const header = ["title","start","end","location","note"];
+    const rows = list.map(it => header.map(h => csvCell(it[h] ?? "")));
+    return header.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+  }
+  function csvCell(v){
+    const s = String(v ?? "");
+    if(/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+    return s;
+  }
+
+  function buildICS(list, tzid){
+    const nowUtc = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+Z$/,"Z");
+    const lines = [];
+    lines.push("BEGIN:VCALENDAR");
+    lines.push("VERSION:2.0");
+    lines.push("PRODID:-//Exam Converter//CN");
+    lines.push("CALSCALE:GREGORIAN");
+    lines.push("METHOD:PUBLISH");
+
+    // Minimal timezone block for common tzids (optional but helps some clients)
+    // Apple/Google generally accept TZID without VTIMEZONE, but some clients prefer it.
+    // Keep it simple and safe.
+    if(tzid === "Asia/Shanghai" || tzid === "Asia/Tokyo"){
+      lines.push(buildSimpleVTimezone(tzid));
+    }
+
+    list.forEach((it, idx) => {
+      const uid = `${cryptoRandom()}-${idx}@exam-converter.local`;
+      const dtstart = formatICSDateTime(it.start);
+      const dtend = formatICSDateTime(it.end);
+      lines.push("BEGIN:VEVENT");
+      lines.push(`UID:${uid}`);
+      lines.push(`DTSTAMP:${nowUtc}`);
+      lines.push(`SUMMARY:${icsEscape(it.title || "考试")}`);
+      lines.push(`DTSTART;TZID=${tzid}:${dtstart}`);
+      lines.push(`DTEND;TZID=${tzid}:${dtend}`);
+      if(it.location) lines.push(`LOCATION:${icsEscape(it.location)}`);
+      const desc = (it.note || "").trim();
+      if(desc) lines.push(`DESCRIPTION:${icsEscape(desc)}`);
+      lines.push("END:VEVENT");
+    });
+
+    lines.push("END:VCALENDAR");
+
+    // Fold lines to 75 octets-ish (simple fold by chars)
+    return lines.map(foldIcsLine).join("\r\n") + "\r\n";
+  }
+
+  function buildSimpleVTimezone(tzid){
+    // Lightweight placeholder VTIMEZONE (not perfect rules), but improves import in picky clients.
+    // Many clients ignore if rules differ; still okay.
+    // If you need strict DST rules, you can later replace with full tz database VTIMEZONE.
+    const id = tzid;
+    return [
+      "BEGIN:VTIMEZONE",
+      `TZID:${id}`,
+      "BEGIN:STANDARD",
+      "DTSTART:19700101T000000",
+      "TZOFFSETFROM:+0000",
+      `TZOFFSETTO:${id==="Asia/Tokyo" ? "+0900" : "+0800"}`,
+      "TZNAME:LOCAL",
+      "END:STANDARD",
+      "END:VTIMEZONE"
+    ].join("\r\n");
+  }
+
+  function cryptoRandom(){
+    if(window.crypto?.getRandomValues){
+      const a = new Uint32Array(2);
+      crypto.getRandomValues(a);
+      return (a[0].toString(16)+a[1].toString(16)).slice(0,20);
+    }
+    return Math.random().toString(16).slice(2) + Date.now().toString(16);
+  }
+
+  function formatICSDateTime(isoLocal){
+    // isoLocal: YYYY-MM-DDTHH:mm:ss -> YYYYMMDDTHHMMSS
+    return isoLocal.replace(/[-:]/g,"").replace(".000","");
+  }
+
+  function foldIcsLine(line){
+    const limit = 75;
+    if(line.length <= limit) return line;
+    let out = "";
+    let i = 0;
+    while(i < line.length){
+      const chunk = line.slice(i, i + limit);
+      out += (i === 0 ? chunk : "\r\n " + chunk);
+      i += limit;
+    }
+    return out;
+  }
+
+  function icsEscape(s){
+    return String(s ?? "")
+      .replace(/\\/g,"\\\\")
+      .replace(/\n/g,"\\n")
+      .replace(/;/g,"\\;")
+      .replace(/,/g,"\\,");
+  }
+
+  function downloadText(text, filename, mime){
+    const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // -------- Helpers (format)
+  function humanToIso(h){
+    // accept: YYYY-MM-DD HH:mm or YYYY/MM/DD HH:mm
+    const m = String(h || "").trim().match(/(\d{4})[-\/\.](\d{1,2})[-\/\.](\d{1,2})\s+(\d{1,2}):(\d{2})/);
+    if(!m) return null;
+    const Y = m[1], M = pad2(m[2]), D = pad2(m[3]);
+    const hh = pad2(m[4]), mm = pad2(m[5]);
+    return `${Y}-${M}-${D}T${hh}:${mm}:00`;
+  }
+
+  function toHuman(iso){
+    // YYYY-MM-DDTHH:mm:ss -> YYYY-MM-DD HH:mm
+    return String(iso).replace("T"," ").slice(0,16);
+  }
+
+  function ymd(iso){
+    return String(iso).slice(0,10);
+  }
+
+  function weekday(iso){
+    const d = new Date(iso);
+    const w = ["周日","周一","周二","周三","周四","周五","周六"][d.getDay()];
+    return w;
+  }
+  function dayStr(iso){
+    return `${ymd(iso)}（${weekday(iso)}）`;
+  }
+  function timeStr(iso){
+    return String(iso).slice(11,16);
+  }
+  function fmtRange(start, end){
+    return `${ymd(start)} ${timeStr(start)}-${timeStr(end)}（${weekday(start)}）`;
+  }
+
+  function groupByDate(list){
+    const m = {};
+    list.forEach(it => {
+      const d = ymd(it.start);
+      (m[d] ||= []).push(it);
+    });
+    return m;
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;")
+      .replace(/'/g,"&#39;");
+  }
+  function escapeAttr(s){
+    return escapeHtml(s).replace(/\n/g," ");
+  }
+
+  // Init
+  setStatus("warn","未导入");
+  renderPoster([], "");
+})();
+</script>
+</body>
+</html>
