@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>词汇查询工作台</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --primary: #2563eb;
+      --text: #1f2937;
+      --sub: #6b7280;
+      --border: #dbe3f1;
+      --ok: #166534;
+      --danger: #b91c1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 30%);
+      color: var(--text);
+    }
+    .container {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+      padding: 14px;
+    }
+    h1,h2,h3 { margin: 8px 0 12px; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 16px; color: #111827; }
+    .small { color: var(--sub); font-size: 13px; }
+    label { display:block; font-size: 13px; color:#374151; margin: 10px 0 6px; }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    button {
+      border: 0;
+      border-radius: 8px;
+      background: #e5e7eb;
+      color: #111827;
+      cursor: pointer;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    button.primary { background: var(--primary); color: #fff; }
+    button.ghost { border: 1px solid var(--border); background: #fff; }
+    button.danger { background: #ef4444; color: #fff; }
+    .status { margin-top: 8px; font-size: 13px; color: var(--sub); }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--danger); }
+    .history-list {
+      max-height: 280px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .history-item {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eef2f7;
+      cursor: pointer;
+    }
+    .history-item:hover { background: #f8fafc; }
+    .history-item:last-child { border-bottom: none; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; color: #334155; }
+    .content {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #111827;
+    }
+    .section {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #e5eaf5;
+      border-radius: 8px;
+      background: #fcfdff;
+    }
+    .badge { display:inline-block; font-size:12px; background:#dbeafe; color:#1d4ed8; border-radius:99px; padding:3px 8px; }
+    @media (max-width: 980px) {
+      .container { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="card">
+      <h1>词汇查询工作台</h1>
+      <p class="small">支持：词条列表逐条学习、本地历史、联网同步、OpenAI兼容API调用、结构化渲染。</p>
+
+      <h2>API 配置</h2>
+      <label>Base URL（OpenAI兼容）</label>
+      <input id="baseUrl" placeholder="例如: https://api.openai.com/v1" />
+
+      <div class="row">
+        <div>
+          <label>模型名</label>
+          <input id="model" placeholder="gpt-4o-mini / 你的模型" />
+        </div>
+        <div>
+          <label>温度</label>
+          <input id="temperature" type="number" step="0.1" min="0" max="2" value="0.2" />
+        </div>
+      </div>
+
+      <label>API Key</label>
+      <input id="apiKey" type="password" placeholder="sk-..." />
+
+      <label>系统 Prompt（可直接贴你给的完整规则）</label>
+      <textarea id="systemPrompt"></textarea>
+
+      <h2>查词输入</h2>
+      <label>当前词/短语</label>
+      <input id="queryInput" placeholder="例如：sustainability / 一针见血" />
+
+      <label>词条文件（每行一个）</label>
+      <textarea id="wordList" placeholder="abandon\nresilient\na piece of cake"></textarea>
+      <div class="btns">
+        <button class="ghost" id="loadWordsBtn">载入列表</button>
+        <button class="ghost" id="prevWordBtn">上一个</button>
+        <button class="ghost" id="nextWordBtn">下一个</button>
+      </div>
+      <div class="small" id="wordIndexLabel">当前序号：0 / 0</div>
+
+      <div class="btns">
+        <button class="primary" id="runBtn">查询并生成</button>
+        <button class="ghost" id="saveLocalBtn">保存本地配置</button>
+        <button class="ghost" id="exportBtn">导出历史JSON</button>
+        <button class="ghost" id="importBtn">导入历史JSON</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+
+      <h2>联网同步（多端）</h2>
+      <p class="small">填你自己的后端接口：<span class="mono">POST/GET</span> 即可。示例场景：Cloudflare Worker / Supabase Edge Function。</p>
+      <label>同步 Key（同一账号唯一ID）</label>
+      <input id="syncKey" placeholder="例如: fly_vocab_user_001" />
+      <label>同步 API URL（同一URL支持GET/POST）</label>
+      <input id="syncUrl" placeholder="例如: https://your-worker.example.com/history" />
+      <div class="btns">
+        <button class="ghost" id="pushSyncBtn">上传到云端</button>
+        <button class="ghost" id="pullSyncBtn">从云端拉取</button>
+      </div>
+
+      <div id="status" class="status">准备就绪。</div>
+
+      <h2>历史记录</h2>
+      <div class="history-list" id="historyList"></div>
+      <div class="btns">
+        <button class="danger" id="clearHistoryBtn">清空历史</button>
+      </div>
+    </aside>
+
+    <main class="card">
+      <h2>结构化结果</h2>
+      <p class="small">如果模型返回JSON，会自动排版；否则显示原文。</p>
+      <div id="result" class="content">暂无结果。</div>
+    </main>
+  </div>
+
+  <script>
+    const DEFAULT_PROMPT = `专门开一个用来查单词、短语、表达等的对话。当我发给你有关词汇的内容时，请默认按以下规则输出。
+一、语言规则
+1. 如果我有特殊说明语言方向，则严格按我的说明来。
+2. 如果我没有特殊说明：我发中文默认译为英文；我发英文、日语、其他语言默认译为中文并简要说明原语言。
+3. 如果输入是短语、句子、固定表达，不要强行当作单词处理，应按“表达/短语”方式分析。
+二、整体输出要求：严格按模板输出并尽量返回结构化JSON。
+八、默认输出模板
+[语言]XX. xxxxx
+基本词性：xxx
+核心义：xxx
+一、义项分析
+二、固定搭配
+三、语义感受与使用说明
+四、近义词/易混词辨析`;
+
+    const state = {
+      words: [],
+      index: 0,
+      history: []
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const statusEl = $('status');
+
+    function setStatus(msg, type = '') {
+      statusEl.textContent = msg;
+      statusEl.className = `status ${type}`;
+    }
+
+    function safeJsonParse(text) {
+      try {
+        return JSON.parse(text);
+      } catch (_) {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) {
+          try { return JSON.parse(match[0]); } catch (_) {}
+        }
+      }
+      return null;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    function renderStructured(data) {
+      const root = $('result');
+      if (!data || typeof data !== 'object') {
+        root.textContent = '返回内容不是JSON对象，显示原始文本。';
+        return;
+      }
+
+      const meaningList = Array.isArray(data.meanings || data['义项分析']) ? (data.meanings || data['义项分析']) : [];
+      const collocations = Array.isArray(data.collocations || data['固定搭配']) ? (data.collocations || data['固定搭配']) : [];
+      const synonyms = Array.isArray(data.synonyms || data['近义词']) ? (data.synonyms || data['近义词']) : [];
+      const title = data.title || data.word || '词条';
+      const lang = data.language || data['语言'] || '未知';
+      const pos = data.partOfSpeech || data['基本词性'] || data['词性'] || '未标注';
+      const core = data.coreMeaning || data['核心义'] || data['最短义标'] || '未提供';
+
+      const sec = [];
+      sec.push(`<div class="section"><span class="badge">${escapeHtml(lang)}</span><h3>${escapeHtml(title)}</h3><div>基本词性：${escapeHtml(pos)}</div><div>核心义：${escapeHtml(core)}</div></div>`);
+
+      if (meaningList.length) {
+        sec.push(`<div class="section"><h3>一、义项分析</h3>${meaningList.map((m, i) => `<p><strong>${i + 1}. ${escapeHtml(m.partOfSpeech || m.pos || '')} ${escapeHtml(m.label || m.short || '')}</strong><br>语意：${escapeHtml(m.meaning || m['语意'] || '')}<br>例句：${escapeHtml(m.example || m['例句'] || '')}<br>译文：${escapeHtml(m.translation || m['译文'] || '')}</p>`).join('')}</div>`);
+      }
+
+      if (collocations.length) {
+        sec.push(`<div class="section"><h3>二、固定搭配</h3>${collocations.map((c, i) => `<p><strong>${i + 1}. ${escapeHtml(c.phrase || c['固定搭配'] || '')}</strong><br>语意：${escapeHtml(c.meaning || c['语意'] || '')}<br>例句：${escapeHtml(c.example || c['例句'] || '')}<br>译文：${escapeHtml(c.translation || c['译文'] || '')}</p>`).join('')}</div>`);
+      }
+
+      const feel = data.usage || data['语义感受与使用说明'];
+      if (feel) {
+        sec.push(`<div class="section"><h3>三、语义感受与使用说明</h3><p>语体属性：${escapeHtml(feel.register || feel['语体属性'] || '')}<br>语义气质：${escapeHtml(feel.tone || feel['语义气质'] || '')}<br>使用环境：${escapeHtml(feel.context || feel['使用环境'] || '')}</p></div>`);
+      }
+
+      if (synonyms.length) {
+        sec.push(`<div class="section"><h3>四、近义词 / 易混词辨析</h3>${synonyms.map((s) => `<p><strong>${escapeHtml(s.word || '')}</strong><br>核心区别：${escapeHtml(s.diff || s['核心区别'] || '')}<br>语体/使用倾向：${escapeHtml(s.style || s['语体/使用倾向'] || '')}</p>`).join('')}</div>`);
+      }
+
+      root.innerHTML = sec.join('');
+    }
+
+    function renderRaw(text) {
+      $('result').textContent = text || '无返回内容';
+    }
+
+    function saveLocal() {
+      const payload = {
+        baseUrl: $('baseUrl').value.trim(),
+        model: $('model').value.trim(),
+        apiKey: $('apiKey').value.trim(),
+        temperature: $('temperature').value.trim(),
+        systemPrompt: $('systemPrompt').value,
+        syncKey: $('syncKey').value.trim(),
+        syncUrl: $('syncUrl').value.trim(),
+        words: state.words,
+        index: state.index,
+        history: state.history
+      };
+      localStorage.setItem('vocabWorkbenchState', JSON.stringify(payload));
+      setStatus('本地保存成功。', 'ok');
+    }
+
+    function loadLocal() {
+      const raw = localStorage.getItem('vocabWorkbenchState');
+      if (!raw) {
+        $('systemPrompt').value = DEFAULT_PROMPT;
+        return;
+      }
+      try {
+        const data = JSON.parse(raw);
+        $('baseUrl').value = data.baseUrl || '';
+        $('model').value = data.model || '';
+        $('apiKey').value = data.apiKey || '';
+        $('temperature').value = data.temperature || '0.2';
+        $('systemPrompt').value = data.systemPrompt || DEFAULT_PROMPT;
+        $('syncKey').value = data.syncKey || '';
+        $('syncUrl').value = data.syncUrl || '';
+        state.words = data.words || [];
+        state.index = data.index || 0;
+        state.history = data.history || [];
+      } catch {
+        $('systemPrompt').value = DEFAULT_PROMPT;
+      }
+      syncWordUI();
+      renderHistory();
+    }
+
+    function syncWordUI() {
+      $('wordList').value = state.words.join('\n');
+      $('wordIndexLabel').textContent = `当前序号：${state.words.length ? state.index + 1 : 0} / ${state.words.length}`;
+      if (state.words[state.index]) $('queryInput').value = state.words[state.index];
+    }
+
+    function renderHistory() {
+      const box = $('historyList');
+      if (!state.history.length) {
+        box.innerHTML = '<div class="history-item small">暂无历史。</div>';
+        return;
+      }
+      box.innerHTML = state.history.map((item, idx) => `
+        <div class="history-item" data-idx="${idx}">
+          <div><strong>${escapeHtml(item.query)}</strong></div>
+          <div class="small">${escapeHtml(item.time)}</div>
+        </div>`).join('');
+      box.querySelectorAll('.history-item[data-idx]').forEach(el => {
+        el.addEventListener('click', () => {
+          const item = state.history[Number(el.dataset.idx)];
+          if (!item) return;
+          $('queryInput').value = item.query;
+          const parsed = safeJsonParse(item.output);
+          parsed ? renderStructured(parsed) : renderRaw(item.output);
+        });
+      });
+    }
+
+    async function runQuery() {
+      const query = $('queryInput').value.trim();
+      const baseUrl = $('baseUrl').value.trim().replace(/\/$/, '');
+      const model = $('model').value.trim();
+      const apiKey = $('apiKey').value.trim();
+      const temperature = Number($('temperature').value || '0.2');
+      const systemPrompt = $('systemPrompt').value.trim();
+
+      if (!query || !baseUrl || !model || !apiKey) {
+        setStatus('请先填好 query / baseUrl / model / apiKey。', 'err');
+        return;
+      }
+
+      setStatus('请求模型中...');
+      const body = {
+        model,
+        temperature,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: query }
+        ]
+      };
+
+      try {
+        const resp = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`
+          },
+          body: JSON.stringify(body)
+        });
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+        }
+        const data = await resp.json();
+        const output = data?.choices?.[0]?.message?.content || '';
+        const parsed = safeJsonParse(output);
+        parsed ? renderStructured(parsed) : renderRaw(output);
+
+        state.history.unshift({
+          query,
+          output,
+          time: new Date().toLocaleString('zh-CN', { hour12: false })
+        });
+        if (state.history.length > 500) state.history = state.history.slice(0, 500);
+        renderHistory();
+        saveLocal();
+        setStatus('生成完成。', 'ok');
+      } catch (err) {
+        renderRaw(String(err));
+        setStatus('调用失败，请检查接口配置或CORS。', 'err');
+      }
+    }
+
+    async function pushSync() {
+      const syncUrl = $('syncUrl').value.trim();
+      const syncKey = $('syncKey').value.trim();
+      if (!syncUrl || !syncKey) {
+        setStatus('请先填写 syncUrl 和 syncKey。', 'err');
+        return;
+      }
+      setStatus('上传中...');
+      try {
+        const resp = await fetch(syncUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: syncKey, history: state.history, words: state.words, index: state.index })
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        setStatus('已上传到云端。', 'ok');
+      } catch (e) {
+        setStatus(`上传失败：${e.message || e}`, 'err');
+      }
+    }
+
+    async function pullSync() {
+      const syncUrl = $('syncUrl').value.trim();
+      const syncKey = $('syncKey').value.trim();
+      if (!syncUrl || !syncKey) {
+        setStatus('请先填写 syncUrl 和 syncKey。', 'err');
+        return;
+      }
+      setStatus('拉取中...');
+      try {
+        const resp = await fetch(`${syncUrl}?key=${encodeURIComponent(syncKey)}`);
+        if (!resp.ok) throw new Error(await resp.text());
+        const data = await resp.json();
+        state.history = Array.isArray(data.history) ? data.history : state.history;
+        state.words = Array.isArray(data.words) ? data.words : state.words;
+        state.index = Number.isInteger(data.index) ? data.index : state.index;
+        syncWordUI();
+        renderHistory();
+        saveLocal();
+        setStatus('云端数据已同步到本地。', 'ok');
+      } catch (e) {
+        setStatus(`拉取失败：${e.message || e}`, 'err');
+      }
+    }
+
+    $('runBtn').addEventListener('click', runQuery);
+    $('saveLocalBtn').addEventListener('click', saveLocal);
+
+    $('loadWordsBtn').addEventListener('click', () => {
+      state.words = $('wordList').value.split(/\n+/).map(v => v.trim()).filter(Boolean);
+      state.index = 0;
+      syncWordUI();
+      saveLocal();
+    });
+
+    $('prevWordBtn').addEventListener('click', () => {
+      if (!state.words.length) return;
+      state.index = (state.index - 1 + state.words.length) % state.words.length;
+      syncWordUI();
+      saveLocal();
+    });
+
+    $('nextWordBtn').addEventListener('click', () => {
+      if (!state.words.length) return;
+      state.index = (state.index + 1) % state.words.length;
+      syncWordUI();
+      saveLocal();
+    });
+
+    $('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify({ history: state.history, words: state.words, index: state.index }, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vocab-history-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    $('importBtn').addEventListener('click', () => $('importFile').click());
+    $('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        state.history = Array.isArray(data.history) ? data.history : state.history;
+        state.words = Array.isArray(data.words) ? data.words : state.words;
+        state.index = Number.isInteger(data.index) ? data.index : 0;
+        syncWordUI();
+        renderHistory();
+        saveLocal();
+        setStatus('导入成功。', 'ok');
+      } catch {
+        setStatus('导入失败：JSON格式无效。', 'err');
+      }
+      e.target.value = '';
+    });
+
+    $('pushSyncBtn').addEventListener('click', pushSync);
+    $('pullSyncBtn').addEventListener('click', pullSync);
+    $('clearHistoryBtn').addEventListener('click', () => {
+      state.history = [];
+      renderHistory();
+      saveLocal();
+      setStatus('历史已清空。', 'ok');
+    });
+
+    loadLocal();
+    renderHistory();
+  </script>
+</body>
+</html>
